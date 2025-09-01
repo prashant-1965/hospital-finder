@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Private Hospital Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/style/privateHospitalDashBoard.css}">
+</head>
+<body>
+<!-- Header Section -->
+<header class="header">
+  <div class="container">
+    <div class="header-content">
+      <div class="logo">
+        <i class="fas fa-heartbeat"></i>
+        <span>PrivateHealth</span>
+      </div>
+      <nav class="nav">
+        <a href="/dashboard/patient" class="nav-link">
+          <i class="fas fa-arrow-left"></i> Back to Main Dashboard
+        </a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+  <div class="container">
+    <!-- Location Banner -->
+    <section class="location-banner">
+      <div class="location-info">
+        <i class="fas fa-map-marker-alt"></i>
+        <div>
+          <h2>Private Healthcare Services</h2>
+          <p id="currentLocation">Loading location...</p>
+          <div class="specialization-info">
+            <i class="fas fa-stethoscope"></i>
+            <span id="currentSpecialization">Loading specialization...</span>
+          </div>
+        </div>
+      </div>
+      <div class="banner-actions">
+        <button class="customize-btn" id="customizeBtn">
+          <i class="fas fa-cog"></i>
+          Customize Search
+        </button>
+      </div>
+    </section>
+
+    <!-- Quick Stats -->
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-user-md"></i>
+          </div>
+          <div class="stat-content">
+            <h3 id="doctorsCount">0</h3>
+            <p>Specialist Doctors</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-hospital"></i>
+          </div>
+          <div class="stat-content">
+            <h3 id="hospitalsCount">0</h3>
+            <p>Private Hospitals</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-star"></i>
+          </div>
+          <div class="stat-content">
+            <h3 id="averageRating">0.0</h3>
+            <p>Average Rating</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div class="stat-content">
+            <h3>Premium</h3>
+            <p>Healthcare Quality</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Specialist Doctors Section -->
+    <section class="content-section">
+      <div class="section-header">
+        <h2>
+          <i class="fas fa-user-md"></i>
+          Top Private Specialist Doctors
+        </h2>
+        <div class="section-actions">
+          <button class="refresh-btn" id="refreshDoctors">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="loading" id="doctorsLoading">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Loading specialist doctors...</span>
+      </div>
+
+      <div class="scrolling-container">
+        <div class="scrolling-list" id="doctorsList">
+          <!-- Doctors will be populated by JavaScript -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Private Hospitals Section -->
+    <section class="content-section">
+      <div class="section-header">
+        <h2>
+          <i class="fas fa-hospital"></i>
+          Top Private Hospitals
+        </h2>
+        <div class="section-actions">
+          <button class="refresh-btn" id="refreshHospitals">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="loading" id="hospitalsLoading">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Loading private hospitals...</span>
+      </div>
+
+      <div class="scrolling-container">
+        <div class="scrolling-list" id="hospitalsList">
+          <!-- Hospitals will be populated by JavaScript -->
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <p>&copy; 2024 Private Healthcare Dashboard. Premium medical services at your fingertips.</p>
+      <div class="footer-links">
+        <a href="#" class="footer-link">Privacy Policy</a>
+        <a href="#" class="footer-link">Terms of Service</a>
+        <a href="#" class="footer-link">Contact Support</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Doctor Details Modal -->
+<div id="doctorDetailsModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Doctor Details</h3>
+      <span class="close-doctor-details">&times;</span>
+    </div>
+    <div class="modal-body" id="doctorDetailsContent">
+      <!-- Doctor details will be populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- Hospital Details Modal -->
+<div id="hospitalDetailsModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Hospital Details</h3>
+      <span class="close-hospital-details">&times;</span>
+    </div>
+    <div class="modal-body" id="hospitalDetailsContent">
+      <!-- Hospital details will be populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div id="errorModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Error</h3>
+      <span id="closeErrorModal">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="error-content">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p id="errorMessage">An error occurred</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden data passed from backend -->
+<script th:inline="javascript">
+  window.customData = /*[[${customData}]]*/ {};
+</script>
+
+<script th:src="@{/script/privateHospitalDashBoard.js}"></script>
+
+</body>
+</html>

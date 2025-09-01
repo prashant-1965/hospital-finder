@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Dashboard - India</title>
+    <!-- CSS file reference for Spring Boot -->
+    <link rel="stylesheet" th:href="@{/style/publicDashBoard.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="/" class="nav-brand">HealthCare</a>
+        <ul class="nav-menu" id="nav-menu">
+            <li class="nav-item">
+                <a href="#doctors" class="nav-link">Our Doctors</a>
+            </li>
+            <li class="nav-item">
+                <a href="#reviews" class="nav-link">Our Reviews</a>
+            </li>
+            <li class="nav-item">
+                <a href="#contact" class="nav-link">Contact Us</a>
+            </li>
+            <li class="nav-item">
+                <a href="/login" class="nav-link login-btn">Login</a>
+            </li>
+        </ul>
+        <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="header">
+        <div class="location" id="locationInfo">Loading...</div>
+        <!-- Rate Our Service Section -->
+        <div class="rate-service-section">
+            <button class="rate-service-btn" onclick="showRateServiceOptions()">
+                Rate Our Service
+            </button>
+        </div>
+    </div>
+
+    <div id="loadingIndicator" class="loading">
+        <div class="spinner"></div>
+        Loading dashboard data...
+    </div>
+
+    <div id="errorMessage" class="error" style="display: none;"></div>
+
+    <div id="dashboardContent" style="display: none;">
+        <!-- Top 5 Doctors Section -->
+        <div class="section" id="doctors">
+            <h2 class="section-title">Our Top Doctors</h2>
+            <div class="scroll-container">
+                <div id="doctorsContainer" class="cards-scroll-wrapper"></div>
+            </div>
+        </div>
+
+        <!-- Top 5 Hospitals Section -->
+        <div class="section">
+            <h2 class="section-title">Our Top Hospitals</h2>
+            <div class="scroll-container">
+                <div id="hospitalsContainer" class="cards-scroll-wrapper"></div>
+            </div>
+        </div>
+
+        <!-- Top 10 Reviews Section -->
+        <div class="section" id="reviews">
+            <h2 class="section-title">⭐ Recent Reviews</h2>
+            <div class="scroll-container">
+                <div id="reviewsContainer" class="cards-scroll-wrapper"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Doctor Details -->
+<div id="doctorModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeDoctorBtn">&times;</span>
+        <div class="modal-header">
+            <div class="modal-title" id="doctorModalTitle">Doctor Details</div>
+        </div>
+        <div id="doctorModalContent">
+            <div class="spinner"></div>
+            Loading doctor details...
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Hospital Details -->
+<div id="hospitalModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeHospitalBtn">&times;</span>
+        <div class="modal-header">
+            <div class="modal-title" id="hospitalModalTitle">Hospital Details</div>
+        </div>
+        <div id="hospitalModalContent">
+            <div class="spinner"></div>
+            Loading hospital details...
+        </div>
+    </div>
+</div>
+
+<!-- Rate Service Options Modal -->
+<div id="rateServiceModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeRateServiceBtn">&times;</span>
+        <div class="modal-header">
+            <div class="modal-title">Rate Our Service</div>
+        </div>
+        <div id="rateServiceContent">
+            <div class="spinner"></div>
+            Loading options...
+        </div>
+    </div>
+</div>
+
+<!-- Doctor Review Modal -->
+<div id="doctorReviewModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeDoctorReviewBtn">&times;</span>
+        <div class="modal-header">
+            <div class="modal-title">Rate Our Doctor</div>
+        </div>
+        <div id="doctorReviewContent">
+            <form id="doctorReviewForm" class="review-form">
+                <div class="form-group">
+                    <label for="doctorReviewUserName">Your Name:</label>
+                    <input type="text" id="doctorReviewUserName" name="userName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="doctorNameSelect">Select Doctor:</label>
+                    <select id="doctorNameSelect" name="doctorName" required>
+                        <option value="">Choose a doctor...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="doctorRating">Rating (1-5):</label>
+                    <div class="rating-input">
+                        <input type="range" id="doctorRating" name="doctorRatting" min="1" max="5" step="0.1" value="5">
+                        <span class="rating-display">5.0</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="doctorComment">Your Review:</label>
+                    <textarea id="doctorComment" name="comment" rows="4" placeholder="Share your experience with the doctor..." required></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeDoctorReviewModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hospital Review Modal -->
+<div id="hospitalReviewModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeHospitalReviewBtn">&times;</span>
+        <div class="modal-header">
+            <div class="modal-title">Rate Our Hospital</div>
+        </div>
+        <div id="hospitalReviewContent">
+            <form id="hospitalReviewForm" class="review-form">
+                <div class="form-group">
+                    <label for="hospitalReviewUserName">Your Name:</label>
+                    <input type="text" id="hospitalReviewUserName" name="userName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="hospitalNameSelect">Select Hospital:</label>
+                    <select id="hospitalNameSelect" name="hospitalName" required>
+                        <option value="">Choose a hospital...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="hospitalRating">Rating (1-5):</label>
+                    <div class="rating-input">
+                        <input type="range" id="hospitalRating" name="hospitalRatting" min="1" max="5" step="0.1" value="5">
+                        <span class="rating-display">5.0</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hospitalComment">Your Review:</label>
+                    <textarea id="hospitalComment" name="comment" rows="4" placeholder="Share your experience with the hospital..." required></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeHospitalReviewModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Global Service Review Modal -->
+<div id="globalReviewModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeGlobalReviewBtn">&times;</span>
+        <div class="modal-header">
+            <div class="modal-title">Rate Our Overall Service</div>
+        </div>
+        <div id="globalReviewContent">
+            <form id="globalReviewForm" class="review-form">
+                <div class="form-group">
+                    <label for="globalReviewUserName">Your Name:</label>
+                    <input type="text" id="globalReviewUserName" name="appUserName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="globalRating">Rating (1-5):</label>
+                    <div class="rating-input">
+                        <input type="range" id="globalRating" name="rating" min="1" max="5" step="0.1" value="5">
+                        <span class="rating-display">5.0</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="globalComment">Your Feedback:</label>
+                    <textarea id="globalComment" name="comments" rows="4" placeholder="Share your overall experience with our healthcare service..." required></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeGlobalReviewModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript file reference for Spring Boot -->
+<script th:src="@{/script/publicDashBoard.js}"></script>
+</body>
+</html>

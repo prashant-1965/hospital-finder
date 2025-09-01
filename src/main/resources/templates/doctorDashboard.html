@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor Dashboard</title>
+    <link rel="stylesheet" th:href="@{/style/doctorDashboard.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="sidebar">
+    <h2>Doctor Panel</h2>
+    <ul>
+        <li><a href="#"><i class="fa fa-home"></i> Dashboard</a></li>
+        <li><a href="#"><i class="fa fa-calendar"></i> Appointments</a></li>
+        <li><a href="#"><i class="fa fa-hospital"></i> Hospitals</a></li>
+        <li><a href="#"><i class="fa fa-user"></i> Profile</a></li>
+    </ul>
+</div>
+
+<div class="main-content">
+    <header>
+        <h2>Welcome, <span id="doctorName"></span></h2>
+    </header>
+
+    <section>
+        <h3>Pending Appointments</h3>
+        <div id="pendingAppointments" class="card-container"></div>
+    </section>
+
+    <section>
+        <h3>Upcoming Appointments</h3>
+        <div id="upcomingAppointments" class="card-container"></div>
+    </section>
+
+    <section>
+        <h3>Completed Appointments</h3>
+        <div id="completedAppointments" class="card-container"></div>
+    </section>
+
+    <section>
+        <h3>Canceled Appointments</h3>
+        <div id="canceledAppointments" class="card-container"></div>
+    </section>
+
+    <section>
+        <h3>Hospitals (Apply for Job)</h3>
+        <div id="hospitalList" class="card-container"></div>
+    </section>
+</div>
+
+<!-- Popup for messages -->
+<div id="popup" class="popup"></div>
+
+<script th:src="@{/script/doctorDashboard.js}"></script>
+</body>
+</html>

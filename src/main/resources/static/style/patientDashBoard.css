@@ -1,0 +1,824 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8fafc;
+    color: #334155;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header Styles */
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.logo i {
+    margin-right: 0.5rem;
+    font-size: 1.8rem;
+}
+
+.nav {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.user-menu i {
+    font-size: 2rem;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.user-menu i:hover {
+    transform: scale(1.1);
+}
+
+/* Main Content */
+.main-content {
+    padding: 1rem 0 2rem 0;
+    min-height: calc(100vh - 80px);
+}
+
+/* Welcome Section - Updated */
+.welcome-section {
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+}
+
+.welcome-info {
+    color: #475569;
+}
+
+.welcome-user {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #1e293b;
+}
+
+.location-info {
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem;
+    color: #64748b;
+}
+
+.location-info i {
+    margin-right: 0.5rem;
+    color: #6366f1;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.card-header h2 {
+    font-size: 1.4rem;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+}
+
+.card-header h2 i {
+    margin-right: 0.5rem;
+    color: #6366f1;
+}
+
+.card-content {
+    padding: 1.5rem;
+}
+
+/* Scroll Container for Horizontal Movement */
+.scroll-container {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+    height: 320px;
+}
+
+/* Horizontal Scrolling Lists */
+.doctors-list,
+.hospitals-list,
+.reviews-list {
+    display: flex;
+    gap: 1.5rem;
+    width: max-content;
+    padding: 10px 0;
+}
+
+/* Doctors - Right to Left */
+.doctors-list {
+    animation: scrollRightToLeft 120s linear infinite;
+}
+
+/* Hospitals - Left to Right */
+.hospitals-list {
+    animation: scrollLeftToRight 120s linear infinite;
+}
+
+/* Reviews - Right to Left */
+.reviews-list {
+    animation: scrollRightToLeft 120s linear infinite;
+}
+
+.doctors-list:hover,
+.hospitals-list:hover,
+.reviews-list:hover {
+    animation-play-state: paused;
+}
+
+/* Keyframes for Right to Left scrolling */
+@keyframes scrollRightToLeft {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Keyframes for Left to Right scrolling */
+@keyframes scrollLeftToRight {
+    0% {
+        transform: translateX(-50%);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+
+/* Loading States */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.loading i {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+}
+
+/* Doctor, Hospital and Review Cards */
+.doctor-card,
+.hospital-card,
+.review-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.doctor-card:hover,
+.hospital-card:hover,
+.review-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.card-image-section {
+    height: 140px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    position: relative;
+}
+
+.card-image-section i {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.coming-soon {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.card-content-section {
+    padding: 1.2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.card-info {
+    flex: 1;
+    color: #64748b;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.card-info-item {
+    margin-bottom: 0.25rem;
+}
+
+.card-rating {
+    display: flex;
+    align-items: center;
+    margin: 0.5rem 0;
+}
+
+.get-details-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: auto;
+}
+
+.get-details-btn:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    transform: translateY(-1px);
+}
+
+.stars {
+    display: flex;
+    margin-right: 0.5rem;
+}
+
+.star {
+    color: #fbbf24;
+    font-size: 1rem;
+}
+
+.star.empty {
+    color: #d1d5db;
+}
+
+.rating-text {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+/* Review Cards */
+.review-card .card-image-section {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.reviewer-name {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.review-comment {
+    color: #475569;
+    font-style: italic;
+    line-height: 1.5;
+    font-size: 0.9rem;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+/* Quick Actions */
+.quick-actions {
+    margin-top: 3rem;
+}
+
+.quick-actions h2 {
+    margin-bottom: 1.5rem;
+    color: #1e293b;
+    font-size: 1.8rem;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.action-btn {
+    background: white;
+    border: 2px solid #e2e8f0;
+    padding: 2rem 1rem;
+    border-radius: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    color: #475569;
+}
+
+.action-btn:hover {
+    border-color: #6366f1;
+    background: #f8fafc;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+}
+
+.action-btn i {
+    font-size: 2rem;
+    color: #6366f1;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.action-btn span {
+    font-weight: 600;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.close {
+    color: #aaa;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover {
+    color: #000;
+}
+
+/* Customization Modal Styles */
+.customization-form {
+    margin-top: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: white;
+    color: #374151;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-select:disabled {
+    background-color: #f9fafb;
+    cursor: not-allowed;
+    color: #9ca3af;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.submit-btn:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Doctor Details Modal */
+.doctor-details-modal {
+    max-width: 900px;
+    width: 95%;
+    margin: 3% auto;
+    text-align: left;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.close-doctor-details {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close-doctor-details:hover {
+    color: #000;
+}
+
+.doctor-details-content {
+    padding: 1rem 0;
+}
+
+.doctor-details-header {
+    text-align: center;
+    padding: 2rem 0 1.5rem 0;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 2rem;
+}
+
+.doctor-avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem auto;
+    color: white;
+    font-size: 2.5rem;
+}
+
+.doctor-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.doctor-specialty {
+    font-size: 1.1rem;
+    color: #6366f1;
+    font-weight: 500;
+}
+
+.doctor-details-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.detail-card {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #6366f1;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.detail-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+}
+
+.detail-value i {
+    margin-right: 0.5rem;
+    color: #6366f1;
+}
+
+.rating-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rating-display .stars {
+    display: flex;
+    gap: 2px;
+}
+
+.rating-display .rating-text {
+    font-weight: 500;
+    color: #64748b;
+}
+
+.experience-badge {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.gender-badge {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.age-badge {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #64748b;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #cbd5e1;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+    .doctor-details-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .doctor-details-modal {
+        max-width: 800px;
+    }
+
+    .doctor-card,
+    .hospital-card,
+    .review-card {
+        width: 260px;
+        height: 280px;
+    }
+
+    .card-image-section {
+        height: 120px;
+    }
+
+    .card-image-section i {
+        font-size: 2.5rem;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+    }
+
+    .card-info {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .header .container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .nav {
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .doctor-details-modal {
+        margin: 2% auto;
+        width: 98%;
+        max-width: 95vw;
+    }
+
+    .doctor-name {
+        font-size: 1.5rem;
+    }
+
+    .doctor-card,
+    .hospital-card,
+    .review-card {
+        width: 240px;
+        height: 260px;
+    }
+
+    .scroll-container {
+        height: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-btn {
+        padding: 1.5rem 1rem;
+    }
+
+    .doctor-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .doctor-card,
+    .hospital-card,
+    .review-card {
+        width: 220px;
+        height: 240px;
+    }
+
+    .card-image-section {
+        height: 100px;
+    }
+
+    .card-image-section i {
+        font-size: 2rem;
+    }
+
+    .scroll-container {
+        height: 260px;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.7);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.dashboard-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.dashboard-card:nth-child(1) { animation-delay: 0.1s; }
+.dashboard-card:nth-child(2) { animation-delay: 0.2s; }
+.dashboard-card:nth-child(3) { animation-delay: 0.3s; }
+
+.doctor-details-modal .modal-content {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+.fade-in {
+    animation: fadeInUp 0.5s ease-out;
+}

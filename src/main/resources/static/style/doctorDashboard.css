@@ -1,0 +1,112 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0e1a2a;
+    color: white;
+    display: flex;
+}
+
+.sidebar {
+    width: 220px;
+    background: #14263c;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.sidebar h2 {
+    color: #00bcd4;
+    margin-bottom: 20px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin: 15px 0;
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar ul li a i {
+    margin-right: 10px;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+}
+
+header {
+    background: #1c2e47;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.card-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: #1c2e47;
+    padding: 15px;
+    border-radius: 10px;
+    width: 280px;
+    box-shadow: 0 0 10px #000;
+}
+
+.card h4 {
+    margin: 0 0 10px 0;
+    color: #00bcd4;
+}
+
+.card p {
+    margin: 5px 0;
+}
+
+.card button {
+    margin-top: 10px;
+    margin-right: 5px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-approve {
+    background: #28a745;
+    color: white;
+}
+
+.btn-reject {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-details {
+    background: #007bff;
+    color: white;
+}
+
+/* Popup message */
+.popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #333;
+    padding: 15px;
+    border-radius: 6px;
+    display: none;
+    color: white;
+    z-index: 1000;
+}
