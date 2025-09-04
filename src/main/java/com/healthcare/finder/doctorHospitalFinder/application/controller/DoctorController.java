@@ -57,4 +57,8 @@ public class DoctorController {
     public ResponseEntity<List<String>> getAllDoctorList(){
         return ResponseEntity.status(200).body(doctorService.findAllAvailableDoctor());
     }
+    @GetMapping("/allDoctorByFacilityAndHospital")
+    public ResponseEntity<List<String>> allDoctorByFacilityAndHospital(@RequestParam String hospitalName, @RequestParam String facilityName){
+        return ResponseEntity.status(200).body(doctorService.findDoctorByFacilityAndHospital(hospitalName,facilityName));
+    }
 }

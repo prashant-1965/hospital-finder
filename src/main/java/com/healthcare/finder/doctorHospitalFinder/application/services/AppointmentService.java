@@ -1,12 +1,12 @@
 package com.healthcare.finder.doctorHospitalFinder.application.services;
 
-import com.healthcare.finder.doctorHospitalFinder.application.dto.appointmentRegistrationDto;
+import com.healthcare.finder.doctorHospitalFinder.application.dto.AppointmentRegistrationDto;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.*;
 
 import java.util.List;
 
 public interface AppointmentService {
-    String registerAppointment(appointmentRegistrationDto appointmentRegistrationDto);
+    String registerAppointment(AppointmentRegistrationDto appointmentRegistrationDto);
     List<PendingAppointmentProjection> getPendingAppointmentsByDoctorEmail(String doctorEmail);
     List<UpComingAppointmentProjection> getUpComingAppointmentsByDoctorEmail(String doctorEmail);
     List<CompletedAppointmentProjection> getCompletedAppointmentsByDoctorEmail(String doctorEmail);

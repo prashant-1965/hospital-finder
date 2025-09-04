@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/healthcare
     username: postgres
-    password: ****
+    password: prash
     driver-class-name: org.postgresql.Driver
 
   jpa:

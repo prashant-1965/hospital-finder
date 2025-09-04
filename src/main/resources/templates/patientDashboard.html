@@ -5,6 +5,40 @@
     <title>Patient Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs" defer></script>
+    <style>
+        /* Ensure Tailwind loads properly and add any missing styles */
+        .hover\:text-blue-600:hover {
+            color: #2563eb;
+        }
+        .hover\:bg-red-600:hover {
+            background-color: #dc2626;
+        }
+        .hover\:shadow-lg:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .hover\:text-black:hover {
+            color: #000000;
+        }
+        .sticky {
+            position: sticky;
+        }
+        .z-50 {
+            z-index: 50;
+        }
+        .z-40 {
+            z-index: 40;
+        }
+        /* Ensure modal backdrop works */
+        .bg-opacity-50 {
+            background-color: rgb(0 0 0 / 0.5);
+        }
+        /* Ensure transitions work */
+        .transition {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 150ms;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
 <!-- Top Navbar -->
@@ -18,7 +52,7 @@
     <div class="flex space-x-6">
         <button onclick="openModal('contactUs')" class="hover:text-blue-600">Contact Us</button>
         <button onclick="openModal('rateService')" class="hover:text-blue-600">Rate Our Service</button>
-        <button class="hover:text-blue-600">My Appointments</button>
+        <button onclick="showMyAppointments()" class="hover:text-blue-600">My Appointments</button>
         <button class="hover:text-blue-600">Customise Request</button>
     </div>
 
@@ -41,7 +75,7 @@
         <ul class="space-y-4">
             <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Find Doctors</button></li>
             <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Find Hospitals</button></li>
-            <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Book Appointments</button></li>
+            <li><button onclick="openBookAppointment()" class="w-full text-left px-4 py-2 bg-blue-100 rounded">Book Appointments</button></li>
         </ul>
     </aside>
 
@@ -83,6 +117,9 @@
     </div>
 </div>
 
+<!-- Toast Notifications -->
+<div id="toastContainer" class="fixed top-4 left-4 flex flex-col space-y-2 z-50"></div>
+
 <!-- Scripts -->
 <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -107,7 +144,7 @@
               <div class="mt-3 flex space-x-2">
                 <button onclick="getDoctorDetail('${doc.doctorName}')"
                         class="bg-blue-500 text-white px-3 py-1 rounded">More Detail</button>
-                <button class="bg-green-500 text-white px-3 py-1 rounded">Book Appointment</button>
+                <button onclick="openBookAppointment()" class="bg-green-500 text-white px-3 py-1 rounded">Book Appointment</button>
               </div>
             </div>`;
         });
@@ -124,7 +161,7 @@
               <div class="mt-3 flex space-x-2">
                 <button onclick="getHospitalDetail('${hos.hospitalName}')"
                         class="bg-blue-500 text-white px-3 py-1 rounded">More Detail</button>
-                <button class="bg-green-500 text-white px-3 py-1 rounded">Book Appointment</button>
+                <button onclick="openBookAppointment()" class="bg-green-500 text-white px-3 py-1 rounded">Book Appointment</button>
               </div>
             </div>`;
         });
@@ -143,6 +180,149 @@
         alert("Error: " + err.message);
       }
     });
+
+    // --- Toast helper ---
+    function showToast(message, type = 'error', duration = 4000) {
+        const toastContainer = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `px-4 py-2 rounded shadow text-white font-medium transition transform
+                           ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`;
+        toast.innerText = message;
+        toastContainer.appendChild(toast);
+
+        // Animate in
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-100%)';
+        requestAnimationFrame(() => {
+            toast.style.transition = 'all 0.3s ease';
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        });
+
+        // Remove after duration
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-100%)';
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, duration);
+    }
+
+    // --- Book Appointment ---
+    async function openBookAppointment() {
+        let facilityOptions = '';
+        try {
+            const res = await fetch('/facility/allFacilities');
+            if (!res.ok) throw new Error(await res.text());
+            const facilities = await res.json();
+            facilityOptions = facilities.map(f => `<option value="${f.facilityName}">${f.facilityName}</option>`).join('');
+        } catch (err) {
+            showToast(err.message, 'error');
+            return;
+        }
+
+        showModal('Book Appointment', `
+            <form id="appointmentForm" onsubmit="submitAppointment(event)" class="grid gap-2">
+                <input name="appUserEmail" placeholder="Your Email" class="border p-2" required>
+
+                <select name="facilityName" id="facilitySelect" class="border p-2" required>
+                    <option value="">Select Facility</option>
+                    ${facilityOptions}
+                </select>
+
+                <select name="hospitalName" id="hospitalSelect" class="border p-2" required>
+                    <option value="">Select Hospital</option>
+                </select>
+
+                <select name="doctorName" id="doctorSelect" class="border p-2" required>
+                    <option value="">Select Doctor</option>
+                </select>
+
+                <input type="datetime-local" name="localDateTime" class="border p-2" required>
+
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+            </form>
+        `);
+
+        // Facility change -> fetch hospitals
+        document.getElementById('facilitySelect').addEventListener('change', async (e) => {
+            const facilityName = e.target.value;
+            if (!facilityName) return;
+            try {
+                const res = await fetch(`/hospital/allHospitalByFacilityName?facilityName=${encodeURIComponent(facilityName)}`);
+                if (!res.ok) throw new Error(await res.text());
+                const hospitals = await res.json();
+                const hospitalSelect = document.getElementById('hospitalSelect');
+                hospitalSelect.innerHTML = `<option value="">Select Hospital</option>` + hospitals.map(h => `<option value="${h}">${h}</option>`).join('');
+                document.getElementById('doctorSelect').innerHTML = `<option value="">Select Doctor</option>`;
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        });
+
+        // Hospital change -> fetch doctors
+        document.getElementById('hospitalSelect').addEventListener('change', async (e) => {
+            const hospitalName = e.target.value;
+            const facilityName = document.getElementById('facilitySelect').value;
+            if (!hospitalName || !facilityName) return;
+            try {
+                const res = await fetch(`/doctor/allDoctorByFacilityAndHospital?hospitalName=${encodeURIComponent(hospitalName)}&facilityName=${encodeURIComponent(facilityName)}`);
+                if (!res.ok) throw new Error(await res.text());
+                const doctors = await res.json();
+                document.getElementById('doctorSelect').innerHTML = `<option value="">Select Doctor</option>` + doctors.map(d => `<option value="${d}">${d}</option>`).join('');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        });
+    }
+
+    async function submitAppointment(event) {
+        event.preventDefault();
+        const form = event.target;
+        const data = Object.fromEntries(new FormData(form).entries());
+
+        try {
+            const res = await fetch('/appointment/registerAppointment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const text = await res.text();
+            if (res.ok) {
+                showToast(text, 'success');
+                form.reset();
+                // Auto-close modal after 1.5 seconds
+                setTimeout(() => closeModal(), 1500);
+            } else {
+                showToast(text, 'error');
+            }
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    // --- My Appointments ---
+    async function showMyAppointments() {
+        const email = prompt("Enter your email to see appointments");
+        if (!email) return;
+        try {
+            const res = await fetch(`/appointment/MyAppointment?email=${encodeURIComponent(email)}`);
+            if (!res.ok) throw new Error(await res.text());
+            const appointments = await res.json();
+            let content = '<ul class="space-y-2">';
+            appointments.forEach(a => {
+                content += `<li class="bg-white p-3 rounded shadow">
+                    <strong>Doctor:</strong> ${a.doctorName}<br>
+                    <strong>Hospital:</strong> ${a.hospitalName}<br>
+                    <strong>Status:</strong> ${a.status}<br>
+                    <strong>Applied On:</strong> ${new Date(a.appointmentAppliedDate).toLocaleString()}
+                </li>`;
+            });
+            content += '</ul>';
+            showModal('My Appointments', content);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
 
     // More Details
     async function getDoctorDetail(name) {
@@ -351,7 +531,6 @@
             <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
           </form>
         `);
-
     }
 
     async function submitReview(event, url) {

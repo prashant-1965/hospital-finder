@@ -77,6 +77,9 @@ public interface DoctorRepo extends JpaRepository<Doctor, Long> {
     @Query("select d.doctorRating from Doctor d where d.doctorName = :name")
     Double getAvgRattingByDoctorName(@Param("name") String name);
 
+    @Query("select d.doctorName from Doctor d join d.hospital h join d.facilities f where h.hospitalName = :hospitalName and f.facilityName = :facilityName order by d.doctorName")
+    List<String> getDoctorByFacilityAndHospital(@Param("hospitalName") String hospitalName, @Param("facilityName") String facilityName);
+
     @Query("select d.doctorName from Doctor d")
     List<String> findAllDoctors();
 }

@@ -144,8 +144,12 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
-    public String findHospitalByDoctorName(String doctorName) throws HospitalException {
-        return "";
+    public String findHospitalByDoctoEmail(String doctorEmail) throws HospitalException {
+        Optional<String> hospital = hospitalRepo.getHospitalByDoctorEmail(doctorEmail);
+        if(hospital.isEmpty()){
+            throw new HospitalException("Doctor with email "+doctorEmail+" is not working in any Hospital",HttpStatus.NOT_FOUND);
+        }
+        return hospital.get();
     }
 
     @Override
@@ -155,5 +159,14 @@ public class HospitalServiceImpl implements HospitalService {
             throw new HospitalException("No hospital found with name: "+hospitalName,HttpStatus.NOT_FOUND);
         }
         return individualHospitalDetailProjection.get();
+    }
+
+    @Override
+    public List<String> findHospitalByFacilityName(String facilityName) throws HospitalException{
+        List<String> hospitalList = hospitalRepo.getHospitalByFacilityName(facilityName);
+        if(hospitalList.isEmpty()){
+            throw new HospitalException(facilityName+" is not available in any Hospital",HttpStatus.NOT_FOUND);
+        }
+        return hospitalList;
     }
 }

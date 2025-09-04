@@ -197,4 +197,13 @@ public class DoctorServiceImpl implements DoctorService{
         }
         return doctorList;
     }
+
+    @Override
+    public List<String> findDoctorByFacilityAndHospital(String hospitalName, String facilityName) {
+        List<String> doctorList = doctorRepo.getDoctorByFacilityAndHospital(hospitalName,facilityName);
+        if(doctorList.isEmpty()){
+            throw new DoctorsException("We don't have any doctor in "+hospitalName+" with "+facilityName+" facility",HttpStatus.NOT_FOUND);
+        }
+        return doctorList;
+    }
 }

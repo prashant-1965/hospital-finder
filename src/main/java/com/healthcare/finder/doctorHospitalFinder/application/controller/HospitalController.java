@@ -1,6 +1,5 @@
 package com.healthcare.finder.doctorHospitalFinder.application.controller;
 
-import com.healthcare.finder.doctorHospitalFinder.application.dto.HospitalRegisterDto;
 import com.healthcare.finder.doctorHospitalFinder.application.dto.HospitalReviewDto;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.IndividualHospitalDetailProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNHospitalListProjection;
@@ -44,8 +43,12 @@ public class HospitalController {
     public ResponseEntity<IndividualHospitalDetailProjection> findIndividualHospitalDetailByHospitalName(String hospitalName){
         return ResponseEntity.status(200).body(hospitalService.findHospitalDetailByName(hospitalName));
     }
-    @GetMapping("/findHospitalByDoctorName")
-    public ResponseEntity<String> findHospitalByDoctorName(@RequestParam String doctorName){
-        return ResponseEntity.status(200).body(hospitalService.findHospitalByDoctorName(doctorName));
+    @GetMapping("/findHospitalByDoctorEmail")
+    public ResponseEntity<String> findHospitalByDoctorName(@RequestParam String doctorEmail){
+        return ResponseEntity.status(200).body(hospitalService.findHospitalByDoctoEmail(doctorEmail));
+    }
+    @GetMapping("/allHospitalByFacilityName")
+    public ResponseEntity<List<String>> findHospitalByFacilityName(@RequestParam String facilityName){
+        return ResponseEntity.status(200).body(hospitalService.findHospitalByFacilityName(facilityName));
     }
 }

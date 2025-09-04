@@ -6,6 +6,7 @@ import com.healthcare.finder.doctorHospitalFinder.application.entity.Doctor;
 import com.healthcare.finder.doctorHospitalFinder.application.entity.DoctorApplication;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.IndividualDoctorDetailProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNDoctorListProjection;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -20,4 +21,5 @@ public interface DoctorService {
     IndividualDoctorDetailProjection findDoctorDetailByName(String name);
     String addDoctorReviews(DoctorReviewDto doctorReviewDto);
     List<String> findAllAvailableDoctor();
+    List<String> findDoctorByFacilityAndHospital(String hospitalName,String facilityName);
 }

@@ -1,7 +1,7 @@
 package com.healthcare.finder.doctorHospitalFinder.application.services;
 
 import com.healthcare.finder.doctorHospitalFinder.application.classException.*;
-import com.healthcare.finder.doctorHospitalFinder.application.dto.appointmentRegistrationDto;
+import com.healthcare.finder.doctorHospitalFinder.application.dto.AppointmentRegistrationDto;
 import com.healthcare.finder.doctorHospitalFinder.application.entity.*;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.*;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.*;
@@ -30,7 +30,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional
-    public String registerAppointment(appointmentRegistrationDto appointmentRegistrationDto) throws DoctorsException, HospitalException, FacilitiesException {
+    public String registerAppointment(AppointmentRegistrationDto appointmentRegistrationDto) throws DoctorsException, HospitalException, FacilitiesException {
 
         Doctor doctor = doctorRepo.findByDoctorName(appointmentRegistrationDto.getDoctorName());
         Optional<Hospital> hospital = hospitalRepo.getHospitalByDoctorName(appointmentRegistrationDto.getDoctorName());

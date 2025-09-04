@@ -51,6 +51,12 @@ public interface HospitalRepo extends JpaRepository<Hospital,Long> {
     @Query("select h from Doctor d join d.hospital h where d.doctorName = :doctorName")
     Optional<Hospital> getHospitalByDoctorName(@Param("doctorName") String doctorName);
 
+    @Query("select h.hospitalName from Doctor d join d.hospital h where d.doctorEmail = :doctorEmail")
+    Optional<String> getHospitalByDoctorEmail(@Param("doctorName") String doctorEmail);
+
+    @Query("select h.hospitalName from Hospital h join h.facilities f where f.facilityName = :facilityName order by h.hospitalName")
+    List<String> getHospitalByFacilityName(@Param("facilityName") String facilityName);
+
     @Query("select new com.healthcare.finder.doctorHospitalFinder.application.projection.IndividualHospitalDetailProjection( "+
             "h.hospitalName,h.hospitalType,h.hospitalYearOfEstablishment,h.hospitalNumOfUsersServed,h.hospitalRating,h.hospitalContact,h.hospitalAddress) "+
             " from Hospital h where h.hospitalName = :hospitalName")

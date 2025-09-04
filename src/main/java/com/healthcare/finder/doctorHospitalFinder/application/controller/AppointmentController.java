@@ -1,6 +1,6 @@
 package com.healthcare.finder.doctorHospitalFinder.application.controller;
 
-import com.healthcare.finder.doctorHospitalFinder.application.dto.appointmentRegistrationDto;
+import com.healthcare.finder.doctorHospitalFinder.application.dto.AppointmentRegistrationDto;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.AppUserAppointmentProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.AppUserRepo;
 import com.healthcare.finder.doctorHospitalFinder.application.services.AppointmentService;
@@ -18,11 +18,11 @@ public class AppointmentController {
     @Autowired
     private AppointmentService appointmentService;
 
-    @GetMapping("/registerAppointment")
-    public ResponseEntity<String> tryDoctorAppointmentBooking(@RequestBody appointmentRegistrationDto appointmentRegistrationDto){
+    @PostMapping("/registerAppointment")
+    public ResponseEntity<String> tryDoctorAppointmentBooking(@RequestBody AppointmentRegistrationDto appointmentRegistrationDto){
         return ResponseEntity.status(200).body(appointmentService.registerAppointment(appointmentRegistrationDto));
     }
-    @GetMapping("/getMyAppointment")
+    @GetMapping("/MyAppointment")
     public ResponseEntity<List<AppUserAppointmentProjection>> getAllAppointments(@RequestParam String email){
         return ResponseEntity.status(200).body(appointmentService.findAllBookedAppointmentByUserName(email));
     }

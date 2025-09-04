@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class appointmentRegistrationDto {
+public class AppointmentRegistrationDto {
     private String appUserEmail;
     private String facilityName;
     private String hospitalName;
