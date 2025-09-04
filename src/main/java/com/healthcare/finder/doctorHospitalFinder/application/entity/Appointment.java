@@ -12,6 +12,7 @@ public class Appointment {
     private Long appointmentId;
 
     private LocalDateTime appointmentDate;
+    private LocalDateTime appointmentAppliedDate;
     private String appointmentStatus; // pending/confirmed/completed/cancelled
 
     @ManyToOne

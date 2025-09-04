@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class GlobalReviewRegisterDto {
-    private String appUserName;
+    private String userEmail;
     private double rating;
     private String comments;
 }

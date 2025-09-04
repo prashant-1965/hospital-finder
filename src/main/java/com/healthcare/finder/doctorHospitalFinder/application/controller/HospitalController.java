@@ -2,6 +2,7 @@ package com.healthcare.finder.doctorHospitalFinder.application.controller;
 
 import com.healthcare.finder.doctorHospitalFinder.application.dto.HospitalRegisterDto;
 import com.healthcare.finder.doctorHospitalFinder.application.dto.HospitalReviewDto;
+import com.healthcare.finder.doctorHospitalFinder.application.projection.IndividualHospitalDetailProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNHospitalListProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.services.HospitalService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,8 @@ public class HospitalController {
     private HospitalService hospitalService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> addHospital(@RequestBody HospitalRegisterDto hospitalRegisterDto){
-        return ResponseEntity.status(200).body(hospitalService.registerHospital(hospitalRegisterDto));
+    public ResponseEntity<String> addHospital(@RequestParam String hospitalName){
+        return ResponseEntity.status(200).body(hospitalService.registerHospital(hospitalName));
     }
 
     @GetMapping("/getTop5hospitals")
@@ -38,5 +39,13 @@ public class HospitalController {
     @GetMapping("/allHospitalList")
     public ResponseEntity<List<String>> getAllHospitalList(){
         return ResponseEntity.status(200).body(hospitalService.findAllAvailableHospital());
+    }
+    @GetMapping("/findIndividualHospitalDetail")
+    public ResponseEntity<IndividualHospitalDetailProjection> findIndividualHospitalDetailByHospitalName(String hospitalName){
+        return ResponseEntity.status(200).body(hospitalService.findHospitalDetailByName(hospitalName));
+    }
+    @GetMapping("/findHospitalByDoctorName")
+    public ResponseEntity<String> findHospitalByDoctorName(@RequestParam String doctorName){
+        return ResponseEntity.status(200).body(hospitalService.findHospitalByDoctorName(doctorName));
     }
 }

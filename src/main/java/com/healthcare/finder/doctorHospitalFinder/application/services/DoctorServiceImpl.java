@@ -170,9 +170,9 @@ public class DoctorServiceImpl implements DoctorService{
 
     @Override
     public String addDoctorReviews(DoctorReviewDto doctorReviewDto) throws DoctorsException {
-        Optional<AppUser> appUser = appUserRepo.findByUsername(doctorReviewDto.getUserName());
+        Optional<AppUser> appUser = appUserRepo.findByUserEmail(doctorReviewDto.getUserEmail());
         if(appUser.isEmpty()){
-            throw new DoctorsException("Please register your self!",HttpStatus.BAD_REQUEST);
+            throw new DoctorsException("Please register your "+doctorReviewDto.getUserEmail()+"!",HttpStatus.BAD_REQUEST);
         }
         Doctor doctor = doctorRepo.findByDoctorName(doctorReviewDto.getDoctorName());
         long totalReview = doctorReviewRepo.getTotalReviewForIndividualDoctorByName(doctorReviewDto.getDoctorName());

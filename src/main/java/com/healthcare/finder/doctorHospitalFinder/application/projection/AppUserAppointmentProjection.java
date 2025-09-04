@@ -7,10 +7,9 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-public class CancelAppointmentProjection {
-    private String userName;
-    private String userEmail;
-    private String appointmentStatus; // Cancel
-    private LocalDateTime userCancelAppointmentDate;
+public class AppUserAppointmentProjection {
+    private String doctorName;
+    private String hospitalName;
+    private String status;
     private LocalDateTime appointmentAppliedDate;
 }

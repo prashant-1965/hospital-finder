@@ -36,11 +36,11 @@ public class GlobalReviewServiceImpl implements GlobalReviewService {
     @Override
     public String addGlobalReview(GlobalReviewRegisterDto globalReviewRegisterDto) throws GlobalReviewException {
 
-        Optional<AppUser> appUser = appUserRepo.findByUsername(globalReviewRegisterDto.getAppUserName());
+        Optional<AppUser> appUser = appUserRepo.findByUserEmail(globalReviewRegisterDto.getUserEmail());
         if(appUser.isEmpty()){
-            throw new GlobalReviewException("Please register your self!",HttpStatus.BAD_REQUEST);
+            throw new GlobalReviewException("Please register your "+globalReviewRegisterDto.getUserEmail()+"!",HttpStatus.BAD_REQUEST);
         }
-        List<String> commentList = globalReviewRepo.getCommentByUserName(globalReviewRegisterDto.getAppUserName());
+        List<String> commentList = globalReviewRepo.getCommentByUserEmail(globalReviewRegisterDto.getUserEmail());
         for(String comments:commentList){
             if(comments.equalsIgnoreCase(globalReviewRegisterDto.getComments())){
                 throw new GlobalReviewException(globalReviewRegisterDto.getComments()+" Already added!",HttpStatus.BAD_REQUEST);

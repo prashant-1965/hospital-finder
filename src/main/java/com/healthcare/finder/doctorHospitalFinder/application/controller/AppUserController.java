@@ -18,7 +18,6 @@ public class AppUserController {
     private AppUserServices appUserServices;
     @PostMapping("/register")
     public ResponseEntity<String> clientSignUp(@RequestBody AppUserRegisterDto appUserRegisterDto){
-        System.out.println("I am from controller: "+appUserRegisterDto.getRole());
         return ResponseEntity.status(200).body(appUserServices.addAppUser(appUserRegisterDto));
     }
 }

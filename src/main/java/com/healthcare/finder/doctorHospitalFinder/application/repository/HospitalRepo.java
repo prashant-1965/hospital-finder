@@ -1,6 +1,7 @@
 package com.healthcare.finder.doctorHospitalFinder.application.repository;
 
 import com.healthcare.finder.doctorHospitalFinder.application.entity.Hospital;
+import com.healthcare.finder.doctorHospitalFinder.application.projection.IndividualHospitalDetailProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNHospitalListProjection;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HospitalRepo extends JpaRepository<Hospital,Long> {
@@ -45,6 +47,14 @@ public interface HospitalRepo extends JpaRepository<Hospital,Long> {
 
     @Query("select h.hospitalName from Hospital h")
     List<String> findAllHospital();
+
+    @Query("select h from Doctor d join d.hospital h where d.doctorName = :doctorName")
+    Optional<Hospital> getHospitalByDoctorName(@Param("doctorName") String doctorName);
+
+    @Query("select new com.healthcare.finder.doctorHospitalFinder.application.projection.IndividualHospitalDetailProjection( "+
+            "h.hospitalName,h.hospitalType,h.hospitalYearOfEstablishment,h.hospitalNumOfUsersServed,h.hospitalRating,h.hospitalContact,h.hospitalAddress) "+
+            " from Hospital h where h.hospitalName = :hospitalName")
+    Optional<IndividualHospitalDetailProjection> getHospitalDetailByName(@Param("hospitalName") String hospitalName);
 
 
 }

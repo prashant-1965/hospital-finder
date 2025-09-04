@@ -1,13 +1,11 @@
 package com.healthcare.finder.doctorHospitalFinder.application.controller;
 
 import com.healthcare.finder.doctorHospitalFinder.application.entity.AppUser;
-import com.healthcare.finder.doctorHospitalFinder.application.projection.AppUserCountryStateProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.Top10RattingCommentProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNDoctorListProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNHospitalListProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.AppUserRepo;
 import com.healthcare.finder.doctorHospitalFinder.application.services.*;
-import com.healthcare.finder.doctorHospitalFinder.application.wrapper.CustomUserDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

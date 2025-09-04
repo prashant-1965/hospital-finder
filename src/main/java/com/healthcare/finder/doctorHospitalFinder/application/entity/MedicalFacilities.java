@@ -25,5 +25,8 @@ public class MedicalFacilities {
 
     @ManyToMany(mappedBy = "medicalFacilities")
     private List<DoctorApplication> doctorApplications;
+
+    @ManyToMany(mappedBy = "facilities")
+    private List<HospitalApplication> hospitalApplications;
 }
 

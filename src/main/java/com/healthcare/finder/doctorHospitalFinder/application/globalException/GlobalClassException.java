@@ -46,4 +46,12 @@ public class GlobalClassException{
     public ResponseEntity<String> validateDoctorApplication(DoctorApplicationException e){
         return ResponseEntity.status(e.getHttpStatus()).body(e.getMessage());
     }
+    @ExceptionHandler(HospitalApplicationException.class)
+    public ResponseEntity<String> validateHospitalApplication(HospitalApplicationException e){
+        return ResponseEntity.status(e.getHttpStatus()).body(e.getMessage());
+    }
+    @ExceptionHandler(AppointmentException.class)
+    public ResponseEntity<String> validateAppointment(AppointmentException e){
+        return ResponseEntity.status(e.getHttpStatus()).body(e.getMessage());
+    }
 }

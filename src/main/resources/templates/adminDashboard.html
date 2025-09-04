@@ -8,198 +8,156 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-<div class="dashboard-container">
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2><i class="fas fa-shield-alt"></i> Admin Panel</h2>
-        </div>
-        <nav class="sidebar-nav">
-            <ul>
-                <li>
-                    <a href="#" class="nav-link active" data-section="overview">
-                        <i class="fas fa-tachometer-alt"></i> Overview
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link" data-section="doctor-register">
-                        <i class="fas fa-user-md"></i> Doctor Registration
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link" data-section="facility-register">
-                        <i class="fas fa-hospital"></i> Facility Registration
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link" data-section="hospital-register">
-                        <i class="fas fa-building"></i> Hospital Registration
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link" data-section="country-register">
-                        <i class="fas fa-globe"></i> Country Registration
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="nav-link" data-section="state-register">
-                        <i class="fas fa-map"></i> State Registration
-                    </a>
-                </li>
-            </ul>
-        </nav>
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <i class="fas fa-diamond"></i>
+        <span>Admin Panel</span>
     </div>
+    <ul class="sidebar-menu">
+        <li class="menu-item active" data-section="overview">
+            <i class="fas fa-chart-pie"></i>
+            <span>Overview</span>
+        </li>
+        <li class="menu-item" data-section="doctor-registration">
+            <i class="fas fa-user-md"></i>
+            <span>Doctor Registration</span>
+        </li>
+        <li class="menu-item" data-section="facility-registration">
+            <i class="fas fa-hospital"></i>
+            <span>Facility Registration</span>
+        </li>
+        <li class="menu-item" data-section="hospital-registration">
+            <i class="fas fa-building"></i>
+            <span>Hospital Registration</span>
+        </li>
+        <li class="menu-item" data-section="country-registration">
+            <i class="fas fa-globe"></i>
+            <span>Country Registration</span>
+        </li>
+        <li class="menu-item" data-section="state-registration">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>State Registration</span>
+        </li>
+    </ul>
+</nav>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="header">
-            <h1>Dashboard</h1>
-            <div class="user-info">
-                <span>Welcome, Admin</span>
-                <i class="fas fa-user-circle"></i>
-            </div>
-        </div>
-
-        <!-- Overview Section -->
-        <div class="content-section active" id="overview">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <i class="fas fa-user-md"></i>
-                    <h3>Pending Doctor Requests</h3>
-                    <span class="stat-number" id="pending-doctors">0</span>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-hospital"></i>
-                    <h3>Pending Facility Requests</h3>
-                    <span class="stat-number" id="pending-facilities">0</span>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-building"></i>
-                    <h3>Pending Hospital Requests</h3>
-                    <span class="stat-number" id="pending-hospitals">0</span>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-globe"></i>
-                    <h3>Total Countries</h3>
-                    <span class="stat-number" id="total-countries">0</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Doctor Registration Section -->
-        <div class="content-section" id="doctor-register">
-            <div class="section-header">
-                <h2>Doctor Registration Requests</h2>
-                <button class="refresh-btn" onclick="loadDoctorRequests()">
-                    <i class="fas fa-sync-alt"></i> Refresh
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Header -->
+    <header class="header">
+        <h1 class="page-title">Dashboard</h1>
+        <div class="header-actions">
+            <span class="welcome-text" id="welcome-text">Welcome, Admin</span>
+            <div class="user-actions">
+                <i class="fas fa-user-circle user-icon"></i>
+                <button class="logout-btn" onclick="adminDashboard.logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
-            <div class="requests-container" id="doctor-requests">
-                <!-- Doctor request cards will be loaded here -->
-            </div>
         </div>
+    </header>
 
-        <!-- Facility Registration Section -->
-        <div class="content-section" id="facility-register">
-            <div class="section-header">
-                <h2>Medical Facility Registration Requests</h2>
-                <button class="refresh-btn" onclick="loadFacilityRequests()">
-                    <i class="fas fa-sync-alt"></i> Refresh
-                </button>
-            </div>
-            <div class="requests-container" id="facility-requests">
-                <!-- Facility request cards will be loaded here -->
-            </div>
-        </div>
-
-        <!-- Hospital Registration Section -->
-        <div class="content-section" id="hospital-register">
-            <div class="section-header">
-                <h2>Hospital Registration Requests</h2>
-                <button class="refresh-btn" onclick="loadHospitalRequests()">
-                    <i class="fas fa-sync-alt"></i> Refresh
-                </button>
-            </div>
-            <div class="requests-container" id="hospital-requests">
-                <!-- Hospital request cards will be loaded here -->
-            </div>
-        </div>
-
-        <!-- Country Registration Section -->
-        <div class="content-section" id="country-register">
-            <div class="section-header">
-                <h2>Country Registration</h2>
-            </div>
-            <div class="form-container">
-                <form id="country-form" class="registration-form">
-                    <div class="form-group">
-                        <label for="countryName">Country Name</label>
-                        <input type="text" id="countryName" name="countryName" required>
-                    </div>
-                    <button type="submit" class="submit-btn">
-                        <i class="fas fa-plus"></i> Add Country
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- State Registration Section -->
-        <div class="content-section" id="state-register">
-            <div class="section-header">
-                <h2>State Registration</h2>
-            </div>
-            <div class="form-container">
-                <form id="state-form" class="registration-form">
-                    <div class="form-group">
-                        <label for="stateName">State Name</label>
-                        <input type="text" id="stateName" name="stateName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="stateCountryName">Country Name</label>
-                        <select id="stateCountryName" name="countryName" required>
-                            <option value="">Select Country</option>
-                            <!-- Countries will be loaded dynamically -->
-                        </select>
-                    </div>
-                    <button type="submit" class="submit-btn">
-                        <i class="fas fa-plus"></i> Add State
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal for detailed view -->
-<div class="modal-overlay" id="modal-overlay">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="modal-title">Request Details</h3>
-            <button class="close-modal" onclick="closeModal()">
-                <i class="fas fa-times"></i>
+    <!-- Overview Section -->
+    <section id="overview" class="content-section active">
+        <!-- Doctor Applications -->
+        <div class="section-header">
+            <h2>Doctor Registration Requests</h2>
+            <button class="refresh-btn" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i> Refresh
             </button>
         </div>
-        <div class="modal-content" id="modal-content">
-            <!-- Dynamic content will be loaded here -->
+        <div id="doctor-applications" class="cards-container">
+            <!-- Doctor cards will be populated here -->
         </div>
-        <div class="modal-actions">
-            <button class="btn btn-success" id="approve-btn">
-                <i class="fas fa-check"></i> Approve
-            </button>
-            <button class="btn btn-danger" id="reject-btn">
-                <i class="fas fa-times"></i> Reject
-            </button>
-        </div>
-    </div>
-</div>
 
-<!-- Loading Spinner -->
-<div class="loading-spinner" id="loading-spinner">
-    <div class="spinner"></div>
-</div>
+        <!-- Hospital Applications -->
+        <div class="section-header">
+            <h2>Hospital Registration Requests</h2>
+        </div>
+        <div id="hospital-applications" class="cards-container">
+            <!-- Hospital cards will be populated here -->
+        </div>
+    </section>
+
+    <!-- Doctor Registration Section -->
+    <section id="doctor-registration" class="content-section">
+        <h2>Doctor Registration Management</h2>
+        <div id="doctor-list" class="cards-container">
+            <!-- Doctor cards will be populated here -->
+        </div>
+    </section>
+
+    <!-- Facility Registration Section -->
+    <section id="facility-registration" class="content-section">
+        <h2>Add Medical Facility</h2>
+        <form id="facility-form" class="registration-form">
+            <div class="form-group">
+                <label for="facilityName">Facility Name:</label>
+                <input type="text" id="facilityName" name="facilityName" required>
+            </div>
+            <div class="form-group">
+                <label for="facilityDescription">Facility Description:</label>
+                <textarea id="facilityDescription" name="facilityDescription" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-plus"></i> Add Facility
+            </button>
+        </form>
+    </section>
+
+    <!-- Hospital Registration Section -->
+    <section id="hospital-registration" class="content-section">
+        <h2>Hospital Registration Management</h2>
+        <div id="hospital-list" class="cards-container">
+            <!-- Hospital cards will be populated here -->
+        </div>
+    </section>
+
+    <!-- Country Registration Section -->
+    <section id="country-registration" class="content-section">
+        <h2>Add Country</h2>
+        <form id="country-form" class="registration-form">
+            <div class="form-group">
+                <label for="countryName">Country Name:</label>
+                <input type="text" id="countryName" name="countryName" required>
+            </div>
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-plus"></i> Add Country
+            </button>
+        </form>
+    </section>
+
+    <!-- State Registration Section -->
+    <section id="state-registration" class="content-section">
+        <h2>Add State</h2>
+        <form id="state-form" class="registration-form">
+            <div class="form-group">
+                <label for="stateCountry">Select Country:</label>
+                <select id="stateCountry" name="countryName" required>
+                    <option value="">Select a country</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="stateName">State Name:</label>
+                <input type="text" id="stateName" name="stateName" required>
+            </div>
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-plus"></i> Add State
+            </button>
+        </form>
+    </section>
+</main>
 
 <!-- Toast Notifications -->
-<div class="toast-container" id="toast-container"></div>
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="loading-overlay">
+    <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+    </div>
+</div>
 
 <script th:src="@{/script/adminDashboard.js}"></script>
 </body>

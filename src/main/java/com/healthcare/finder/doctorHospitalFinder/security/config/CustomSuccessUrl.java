@@ -22,7 +22,7 @@ public class CustomSuccessUrl implements AuthenticationSuccessHandler {
         switch (role) {
             case "ROLE_DOCTOR" -> response.sendRedirect("/doctorHome");
             case "ROLE_PATIENT" -> response.sendRedirect("/patientHome");
-            case "ROLE_ADMIN" -> response.sendRedirect("/adminHome");
+            case "ROLE_ADMIN" -> response.sendRedirect("/adminHomeUi");
             default -> response.sendRedirect("/login");
         }
     }

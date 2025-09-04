@@ -4,13 +4,17 @@ import com.healthcare.finder.doctorHospitalFinder.application.classException.*;
 import com.healthcare.finder.doctorHospitalFinder.application.dto.AppUserRegisterDto;
 import com.healthcare.finder.doctorHospitalFinder.application.dto.DoctorRegisterDto;
 import com.healthcare.finder.doctorHospitalFinder.application.entity.*;
+import com.healthcare.finder.doctorHospitalFinder.application.projection.DoctorApplicationProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.awt.font.OpenType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -29,6 +33,7 @@ public class DoctorApplicationServiceImpl implements DoctorApplicationService{
     private AppUserServices appUserServices;
 
     @Override
+    @Transactional
     public String addDoctorApplicationRequest(DoctorRegisterDto doctorRegisterDto)  throws CountryException, StateException, AppUserException {
 
         Country country = countryRepo.findCountryByName(doctorRegisterDto.getCountryName());
@@ -88,11 +93,40 @@ public class DoctorApplicationServiceImpl implements DoctorApplicationService{
     }
 
     @Override
-    public List<DoctorApplication> findAllPendingDoctors() throws DoctorsException {
+    public List<DoctorApplicationProjection> findAllPendingDoctors() throws DoctorsException {
         List<DoctorApplication> doctorApplicationList = doctorApplicationRepo.getAllPendingDoctors();
         if(doctorApplicationList.isEmpty()){
             throw new DoctorsException("No Pending Doctor Available",HttpStatus.NOT_FOUND);
         }
-        return doctorApplicationList;
+        return doctorApplicationList.stream().map(d->new DoctorApplicationProjection(
+                d.getTmpDoctorName(),
+                d.getTmpDoctorAge(),
+                d.getTmpDoctorGender(),
+                d.getTmpDoctorYearsOfExperience(),
+                d.getTmpDoctorGraduateCollege(),
+                d.getTmpDoctorFieldOfExpertise(),
+                d.getTmpDoctorEmail(),
+                d.getTmpDoctorMobile(),
+                d.getTmpDoctorDetailAddress(),
+                d.getTmpDoctorType(),
+                d.getHospitalAppliedFor(),
+                d.getTmpDoctorCountryName(),
+                d.getTmpDoctorStateName(),
+                d.getMedicalFacilities()
+                        .stream()
+                        .map(MedicalFacilities::getFacilityName)
+                        .toList()
+        )).toList();
+    }
+
+    @Override
+    @Transactional
+    public String removeDoctorByEmail(String email) throws DoctorApplicationException{
+        Optional<DoctorApplication> doctorApplication = doctorApplicationRepo.getDoctorNameByEmail(email);
+        if(doctorApplication.isEmpty()){
+            throw new DoctorApplicationException("No doctor with email "+email+ " exist!",HttpStatus.NOT_FOUND);
+        }
+        doctorApplicationRepo.deleteDoctorApplicationByEmail(email);
+        return "Doctor with +"+email+" removed Successfully";
     }
 }

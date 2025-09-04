@@ -18,9 +18,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
         httpSecurity
                 .authorizeHttpRequests(auth->
-                                                                    auth.requestMatchers("/dashboardDoctor/**").hasRole("DOCTOR")
-                                                                        .requestMatchers("/patientHome","/dashboard/patient/**","/globalReview/register","/appointment/register").hasRole("PATIENT")
-//                                                                        .requestMatchers("/adminHome","/doctor/register","/country/register","state/register","/facility/register").hasRole("ADMIN")
+                                                                    auth.requestMatchers("/doctorHome").hasRole("DOCTOR")
+                                                                        .requestMatchers("/patientHome","/dashboard/patient/**","/globalReview/register","/appointment/register","/hospital/addReview","/doctor/addReview").hasRole("PATIENT")
+                                                                        .requestMatchers("/adminHomeUi","/doctor/register","/country/register","/state/register","/facility/register").hasRole("ADMIN")
                                                                         .anyRequest().permitAll())
 
                 .formLogin(login->

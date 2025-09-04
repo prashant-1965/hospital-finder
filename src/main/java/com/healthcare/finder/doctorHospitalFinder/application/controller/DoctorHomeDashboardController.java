@@ -36,10 +36,10 @@ public class DoctorHomeDashboardController {
         String email = springUser.getUsername();
         AppUser appUser = appUserRepo.findByUserEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<PendingAppointmentProjection> pendingAppointmentProjections = appointmentService.getPendingAppointmentsByDoctorName(appUser.getUserName());
-        List<UpComingAppointmentProjection> upComingAppointmentProjections = appointmentService.getUpComingAppointmentsByDoctorName(appUser.getUserName());
-        List<CompletedAppointmentProjection> completedAppointmentProjections = appointmentService.getCompletedAppointmentsByDoctorName(appUser.getUserName());
-        List<CancelAppointmentProjection> canceledAppointmentsProjections = appointmentService.getCancelAppointmentsByDoctorName(appUser.getUserName());
+        List<PendingAppointmentProjection> pendingAppointmentProjections = appointmentService.getPendingAppointmentsByDoctorEmail(appUser.getUserEmail());
+        List<UpComingAppointmentProjection> upComingAppointmentProjections = appointmentService.getUpComingAppointmentsByDoctorEmail(appUser.getUserEmail());
+        List<CompletedAppointmentProjection> completedAppointmentProjections = appointmentService.getCompletedAppointmentsByDoctorEmail(appUser.getUserEmail());
+        List<CancelAppointmentProjection> canceledAppointmentsProjections = appointmentService.getCancelAppointmentsByDoctorEmail(appUser.getUserEmail());
         List<TopNHospitalListProjection> topNHospitalListProjections = hospitalService.getTopNHospitalList();
 
         Map<String, Object> details = new HashMap<>();

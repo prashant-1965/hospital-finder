@@ -27,7 +27,7 @@ public class AppUser {
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
     private List<GlobalReview> reviews;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private Role role;
 }

@@ -1,11 +1,12 @@
 package com.healthcare.finder.doctorHospitalFinder.application.services;
 
 import com.healthcare.finder.doctorHospitalFinder.application.classException.*;
-import com.healthcare.finder.doctorHospitalFinder.application.dto.HospitalRegisterDto;
 import com.healthcare.finder.doctorHospitalFinder.application.dto.HospitalReviewDto;
 import com.healthcare.finder.doctorHospitalFinder.application.entity.*;
+import com.healthcare.finder.doctorHospitalFinder.application.projection.IndividualHospitalDetailProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNHospitalListProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 
@@ -32,6 +33,8 @@ public class HospitalServiceImpl implements HospitalService {
     private FacilitiesRepo facilitiesRepo;
     @Autowired
     private AppUserRepo appUserRepo;
+    @Autowired
+    private HospitalApplicationRepo hospitalApplicationRepo;
 
     @Override
     public List<TopNHospitalListProjection> getTopNHospitalListByCountry(String countryName, int n) throws HospitalException {
@@ -86,9 +89,9 @@ public class HospitalServiceImpl implements HospitalService {
 
     @Override
     public String addHospitalReviews(HospitalReviewDto hospitalReviewDto) throws HospitalException{
-        Optional<AppUser> appUser = appUserRepo.findByUsername(hospitalReviewDto.getAppUserName());
+        Optional<AppUser> appUser = appUserRepo.findByUserEmail(hospitalReviewDto.getAppUserEmail());
         if(appUser.isEmpty()){
-            throw new HospitalException("Please register your self!",HttpStatus.BAD_REQUEST);
+            throw new HospitalException("Please register your "+hospitalReviewDto.getAppUserEmail()+"!",HttpStatus.BAD_REQUEST);
         }
         Hospital hospital = hospitalRepo.findByHospitalName(hospitalReviewDto.getHospitalName());
         long totalReview = hospitalReviewRepo.getTotalReviewForIndividualHospitalByName(hospitalReviewDto.getHospitalName());
@@ -105,39 +108,29 @@ public class HospitalServiceImpl implements HospitalService {
         return "Review Added SuccessFully!";
     }
 
+    @Transactional
     @Override
-    public String registerHospital(HospitalRegisterDto hospitalRegisterDto) throws HospitalException, CountryException, StateException, FacilitiesException {
-        Country country = countryRepo.findCountryByName(hospitalRegisterDto.getCountryName());
-        if(country==null){
-            throw new CountryException("Service is not available in "+hospitalRegisterDto.getCountryName(),HttpStatus.NOT_FOUND);
-        }
-        State state = statesRepo.findByStateName(hospitalRegisterDto.getStateName());
-        if(state==null){
-            throw new StateException("Our service is not available in "+hospitalRegisterDto.getStateName(),HttpStatus.NOT_FOUND);
-        }
-        List<MedicalFacilities> medicalFacilitiesList = new ArrayList<>();
-        for(String facility:hospitalRegisterDto.getFacilities()){
-            MedicalFacilities medicalFacilities = facilitiesRepo.findByFacilityName(facility);
-            if(medicalFacilities==null){
-                throw new FacilitiesException(facility+" facility is not Available",HttpStatus.BAD_REQUEST);
-            }
-            medicalFacilitiesList.add(medicalFacilities);
-        }
-        Hospital existHospital = hospitalRepo.findByHospitalName(hospitalRegisterDto.getHospitalName());
-        if(existHospital!=null){
-            throw new HospitalException(hospitalRegisterDto.getHospitalName()+" already exist!",HttpStatus.BAD_REQUEST);
-        }
+    public String registerHospital(String hospitalName) throws HospitalException, CountryException, StateException, FacilitiesException {
+
+        HospitalApplication hospitalApplication = hospitalApplicationRepo.getByHospitalName(hospitalName);
+        Country country = countryRepo.findCountryByName(hospitalApplication.getTempCountryName());
+
+        State state = statesRepo.findByStateName(hospitalApplication.getTempStateName());
+
+        List<MedicalFacilities> medicalFacilitiesList = new ArrayList<>(hospitalApplication.getFacilities());
+
         Hospital hospital = new Hospital();
-        hospital.setHospitalName(hospitalRegisterDto.getHospitalName());
-        hospital.setHospitalType(hospitalRegisterDto.getHospitalType());
-        hospital.setHospitalYearOfEstablishment(hospitalRegisterDto.getHospitalYearOfEstablishment());
-        hospital.setHospitalNumOfUsersServed(hospitalRegisterDto.getHospitalNumOfUsersServed());
-        hospital.setHospitalContact(hospitalRegisterDto.getHospitalContact());
-        hospital.setHospitalAddress(hospitalRegisterDto.getHospitalAddress());
+        hospital.setHospitalName(hospitalApplication.getTempHospitalName());
+        hospital.setHospitalType(hospitalApplication.getTempHospitalType());
+        hospital.setHospitalYearOfEstablishment(hospitalApplication.getTempHospitalYearOfEstablishment());
+        hospital.setHospitalNumOfUsersServed(hospitalApplication.getTempHospitalNumOfUsersServed());
+        hospital.setHospitalContact(hospitalApplication.getTempHospitalContact());
+        hospital.setHospitalAddress(hospitalApplication.getTempHospitalAddress());
         hospital.setCountry(country);
         hospital.setState(state);
         hospital.setFacilities(medicalFacilitiesList);
         hospitalRepo.save(hospital);
+        hospitalApplicationRepo.deleteHospitalApplicationByName(hospitalName);
         return "Hospital registered Successfully";
     }
 
@@ -148,5 +141,19 @@ public class HospitalServiceImpl implements HospitalService {
             throw new DoctorsException("No doctor available!",HttpStatus.NOT_FOUND);
         }
         return hospitalList;
+    }
+
+    @Override
+    public String findHospitalByDoctorName(String doctorName) throws HospitalException {
+        return "";
+    }
+
+    @Override
+    public IndividualHospitalDetailProjection findHospitalDetailByName(String hospitalName) throws HospitalException {
+        Optional<IndividualHospitalDetailProjection> individualHospitalDetailProjection = hospitalRepo.getHospitalDetailByName(hospitalName);
+        if(individualHospitalDetailProjection.isEmpty()){
+            throw new HospitalException("No hospital found with name: "+hospitalName,HttpStatus.NOT_FOUND);
+        }
+        return individualHospitalDetailProjection.get();
     }
 }

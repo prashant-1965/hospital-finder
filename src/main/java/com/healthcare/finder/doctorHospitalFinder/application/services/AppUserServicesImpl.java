@@ -66,13 +66,16 @@ public class AppUserServicesImpl implements AppUserServices, UserDetailsService 
     }
 
     @Override
-    public UserDetails loadUserByUsername(String userEmail) throws UsernameNotFoundException
+    public UserDetails loadUserByUsername(String userEmail) throws AppUserException
     {
-        AppUser appUser = appUserRepo.findByUserEmail(userEmail).orElseThrow(() -> new UsernameNotFoundException("Invalid login Details"));
+        Optional<AppUser> appUser = appUserRepo.findByUserEmail(userEmail);
+        if(appUser.isEmpty()){
+            throw new AppUserException("Invalid login Details",HttpStatus.NOT_FOUND);
+        }
         return new User(
-                appUser.getUserEmail(),
-                appUser.getUserPassword(),
-                List.of(new SimpleGrantedAuthority("ROLE_"+appUser.getRole().getRoleName()))
+                appUser.get().getUserEmail(),
+                appUser.get().getUserPassword(),
+                List.of(new SimpleGrantedAuthority("ROLE_"+appUser.get().getRole().getRoleName()))
         );
     }
 

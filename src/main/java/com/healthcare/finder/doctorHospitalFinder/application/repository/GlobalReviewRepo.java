@@ -5,6 +5,7 @@ import com.healthcare.finder.doctorHospitalFinder.application.projection.Top10Ra
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,6 +17,6 @@ public interface GlobalReviewRepo extends JpaRepository<GlobalReview, Long> {
     "from GlobalReview r join r.user u order by r.createdAt desc")
     List<Top10RattingCommentProjection> findTop10RecentGlobalReviews(Pageable pageable);
 
-    @Query("select gr.comments from GlobalReview gr join gr.user u where u.userName = :name")
-    List<String> getCommentByUserName(String name);
+    @Query("select gr.comments from GlobalReview gr join gr.user u where u.userEmail = :userEmail")
+    List<String> getCommentByUserEmail(@Param("userEmail") String userEmail);
 }

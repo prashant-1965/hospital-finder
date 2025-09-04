@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+<!-- Top Navbar -->
+<nav class="flex justify-between items-center bg-white shadow px-6 py-3 sticky top-0 z-50">
+    <!-- Left: Logo -->
+    <div class="flex items-center space-x-2">
+        <span class="text-2xl font-bold text-blue-600">HealthCare</span>
+    </div>
+
+    <!-- Center: Navigation Links -->
+    <div class="flex space-x-6">
+        <button onclick="openModal('contactUs')" class="hover:text-blue-600">Contact Us</button>
+        <button onclick="openModal('rateService')" class="hover:text-blue-600">Rate Our Service</button>
+        <button class="hover:text-blue-600">My Appointments</button>
+        <button class="hover:text-blue-600">Customise Request</button>
+    </div>
+
+    <!-- Right: Profile + Logout -->
+    <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2">
+            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                <span class="text-sm font-bold" id="userInitials">U</span>
+            </div>
+            <span id="currentUser" class="font-medium"></span>
+        </div>
+        <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                onclick="window.location.href='/logout'">Logout</button>
+    </div>
+</nav>
+
+<div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 h-screen bg-white shadow-md p-4 sticky top-14">
+        <ul class="space-y-4">
+            <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Find Doctors</button></li>
+            <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Find Hospitals</button></li>
+            <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Book Appointments</button></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 space-y-8">
+        <!-- Location -->
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-xl font-semibold">Location</h2>
+            <p id="locationDetails" class="text-gray-700"></p>
+        </div>
+
+        <!-- Top Doctors -->
+        <section>
+            <h2 class="text-xl font-semibold mb-4">Top Doctors</h2>
+            <div id="doctorList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- Top Hospitals -->
+        <section>
+            <h2 class="text-xl font-semibold mb-4">Top Hospitals</h2>
+            <div id="hospitalList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- Reviews -->
+        <section>
+            <h2 class="text-xl font-semibold mb-4">Recent Reviews</h2>
+            <ul id="reviewList" class="space-y-3"></ul>
+        </section>
+    </main>
+</div>
+
+<!-- General Modal -->
+<div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div class="bg-white p-6 rounded shadow-lg w-96 max-h-[90vh] overflow-y-auto relative">
+        <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-black font-bold">X</button>
+        <h3 id="modalTitle" class="text-xl font-semibold mb-4"></h3>
+        <div id="modalContent" class="text-gray-700"></div>
+        <div id="modalMsg" class="hidden text-center font-semibold mt-2"></div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const response = await fetch("/dashboard/patient");
+        if (!response.ok) throw new Error("Failed to load dashboard");
+        const data = await response.json();
+
+        document.getElementById("currentUser").innerText = data.currentUser;
+        document.getElementById("locationDetails").innerText = data.locationDetails;
+        document.getElementById("userInitials").innerText = data.currentUser.charAt(0).toUpperCase();
+
+        // Doctors
+        const doctorList = document.getElementById("doctorList");
+        data.top5Doctors.forEach(doc => {
+          doctorList.innerHTML += `
+            <div class="bg-white p-4 rounded shadow hover:shadow-lg transition">
+              <h3 class="font-semibold text-lg">${doc.doctorName}</h3>
+              <p class="text-sm text-gray-600">Experience: ${doc.yearOfExp} yrs</p>
+              <p class="text-sm">⭐ ${doc.doctorRatting}</p>
+              <p class="text-sm">${doc.doctorDetailAddress || "Coming Soon"}</p>
+              <div class="mt-3 flex space-x-2">
+                <button onclick="getDoctorDetail('${doc.doctorName}')"
+                        class="bg-blue-500 text-white px-3 py-1 rounded">More Detail</button>
+                <button class="bg-green-500 text-white px-3 py-1 rounded">Book Appointment</button>
+              </div>
+            </div>`;
+        });
+
+        // Hospitals
+        const hospitalList = document.getElementById("hospitalList");
+        data.top5Hospitals.forEach(hos => {
+          hospitalList.innerHTML += `
+            <div class="bg-white p-4 rounded shadow hover:shadow-lg transition">
+              <h3 class="font-semibold text-lg">${hos.hospitalName}</h3>
+              <p class="text-sm">Type: ${hos.hospitalType}</p>
+              <p class="text-sm">⭐ ${hos.hospitalRating}</p>
+              <p class="text-sm">${hos.hospitalAddress || "Coming Soon"}</p>
+              <div class="mt-3 flex space-x-2">
+                <button onclick="getHospitalDetail('${hos.hospitalName}')"
+                        class="bg-blue-500 text-white px-3 py-1 rounded">More Detail</button>
+                <button class="bg-green-500 text-white px-3 py-1 rounded">Book Appointment</button>
+              </div>
+            </div>`;
+        });
+
+        // Reviews
+        const reviewList = document.getElementById("reviewList");
+        data.top10RattingComment.forEach(rev => {
+          reviewList.innerHTML += `
+            <li class="bg-white p-3 rounded shadow hover:shadow-lg transition">
+              <strong>${rev.userName}</strong> rated ⭐ ${rev.rating}<br>
+              <span>${rev.comments}</span>
+            </li>`;
+        });
+
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    });
+
+    // More Details
+    async function getDoctorDetail(name) {
+      try {
+        const res = await fetch(`/doctor/getDoctorDetails?doctorName=${encodeURIComponent(name)}`);
+        if (!res.ok) throw new Error(await res.text());
+        const doc = await res.json();
+        showModal("Doctor Details", `
+          <p><b>Name:</b> ${doc.doctorName}</p>
+          <p><b>Age:</b> ${doc.doctorAge}</p>
+          <p><b>Gender:</b> ${doc.doctorGender}</p>
+          <p><b>Experience:</b> ${doc.doctorYearsOfExperience} yrs</p>
+          <p><b>Rating:</b> ⭐ ${doc.doctorRating}</p>
+          <p><b>Graduate College:</b> ${doc.doctorGraduateCollege}</p>
+          <p><b>Expertise:</b> ${doc.doctorFieldOfExpertise}</p>
+          <p><b>Type:</b> ${doc.doctorType}</p>
+        `);
+      } catch (err) {
+        showModal("Error", err.message, true);
+      }
+    }
+
+    async function getHospitalDetail(name) {
+      try {
+        const res = await fetch(`/hospital/findIndividualHospitalDetail?hospitalName=${encodeURIComponent(name)}`);
+        if (!res.ok) throw new Error(await res.text());
+        const hos = await res.json();
+        showModal("Hospital Details", `
+          <p><b>Name:</b> ${hos.hospitalName}</p>
+          <p><b>Type:</b> ${hos.hospitalType}</p>
+          <p><b>Established:</b> ${hos.hospitalYearOfEstablishment}</p>
+          <p><b>Users Served:</b> ${hos.hospitalNumOfUsersServed}</p>
+          <p><b>Rating:</b> ⭐ ${hos.hospitalRating}</p>
+          <p><b>Contact:</b> ${hos.hospitalContact}</p>
+          <p><b>Address:</b> ${hos.hospitalAddress}</p>
+        `);
+      } catch (err) {
+        showModal("Error", err.message, true);
+      }
+    }
+
+    // Main modal handler
+    function openModal(type) {
+      const title = document.getElementById("modalTitle");
+      const content = document.getElementById("modalContent");
+      const msgEl = document.getElementById("modalMsg");
+      msgEl.classList.add("hidden"); msgEl.innerText = "";
+
+      if (type === "contactUs") {
+        title.innerText = "Contact Us";
+        content.innerHTML = `
+          <div class="grid gap-3">
+            <button onclick="openDoctorReg()" class="bg-blue-600 text-white px-4 py-2 rounded">Doctor Registration Request</button>
+            <button onclick="showSimpleForm('/contactUs/doctorRemovalRequest','Doctor Removal Request','doctorEmail')" class="bg-blue-600 text-white px-4 py-2 rounded">Doctor Removal Request</button>
+            <button onclick="openHospitalReg()" class="bg-blue-600 text-white px-4 py-2 rounded">Hospital Registration Request</button>
+            <button onclick="showSimpleForm('/contactUs/hospitalRemovalRequest','Hospital Removal Request','hospitalName')" class="bg-blue-600 text-white px-4 py-2 rounded">Hospital Removal Request</button>
+            <button onclick="showModal('Developer Message','Coming Soon')" class="bg-blue-600 text-white px-4 py-2 rounded">Contact Developer</button>
+          </div>`;
+      }
+
+      if (type === "rateService") {
+        title.innerText = "Rate Our Service";
+        content.innerHTML = `
+          <div class="grid gap-3">
+            <button onclick="openHospitalReview()" class="bg-green-600 text-white px-4 py-2 rounded">Rate Hospital</button>
+            <button onclick="openDoctorReview()" class="bg-green-600 text-white px-4 py-2 rounded">Rate Doctor</button>
+            <button onclick="openGlobalReview()" class="bg-green-600 text-white px-4 py-2 rounded">Overall Experience</button>
+          </div>`;
+      }
+      document.getElementById("modal").classList.remove("hidden");
+    }
+
+    // Doctor Registration
+    async function openDoctorReg() {
+      let hospitalOptions = "";
+      try {
+        const res = await fetch("/hospital/allHospitalList");
+        if (res.ok) {
+          const hospitals = await res.json();
+          hospitalOptions = hospitals.map(h => `<option value="${h}">${h}</option>`).join("");
+        }
+      } catch {}
+      showModal("Doctor Registration", `
+        <form onsubmit="submitDoctorReg(event)" class="grid gap-2">
+          <input name="doctorName" placeholder="Doctor Name" class="border p-2" required>
+          <input type="number" name="doctorAge" placeholder="Age" class="border p-2" required>
+          <input name="doctorGender" placeholder="Gender" class="border p-2" required>
+          <input type="number" name="doctorYearsOfExperience" placeholder="Experience" class="border p-2" required>
+          <input name="doctorGraduateCollege" placeholder="Graduate College" class="border p-2" required>
+          <input name="doctorFieldOfExpertise" placeholder="Expertise" class="border p-2" required>
+          <input type="email" name="doctorEmail" placeholder="Email" class="border p-2" required>
+          <input name="doctorMobile" placeholder="Mobile" class="border p-2" required>
+          <input name="doctorDetailAddress" placeholder="Address" class="border p-2" required>
+          <select name="doctorType" class="border p-2" required>
+            <option value="">Select Type</option>
+            <option value="gov">Government</option>
+            <option value="private">Private</option>
+          </select>
+          <select name="hospitalAppliedFor" class="border p-2" required>
+            <option value="">Select Hospital</option>
+            ${hospitalOptions}
+          </select>
+          <input name="countryName" placeholder="Country" class="border p-2" required>
+          <input name="stateName" placeholder="State" class="border p-2" required>
+          <input name="facilityNames" placeholder="Facilities (comma separated)" class="border p-2">
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+        </form>`);
+    }
+
+    async function submitDoctorReg(event) {
+      event.preventDefault();
+      const form = event.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.facilityNames = data.facilityNames ? data.facilityNames.split(",").map(f => f.trim()) : [];
+      const res = await fetch("/contactUs/doctorRegistrationRequest", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const msgEl = document.getElementById("modalMsg");
+      const text = await res.text();
+      msgEl.innerText = text;
+      msgEl.classList.remove("hidden");
+      msgEl.className = res.ok ? "text-green-600 font-semibold" : "text-red-600 font-semibold";
+    }
+
+    // Hospital Registration
+    function openHospitalReg() {
+      showModal("Hospital Registration", `
+        <form onsubmit="submitHospitalReg(event)" class="grid gap-2">
+          <input name="hospitalName" placeholder="Hospital Name" class="border p-2" required>
+          <input name="hospitalType" placeholder="Hospital Type" class="border p-2" required>
+          <input type="number" name="hospitalYearOfEstablishment" placeholder="Year of Establishment" class="border p-2" required>
+          <input type="number" name="hospitalNumOfUsersServed" placeholder="Users Served" class="border p-2" required>
+          <input name="hospitalContact" placeholder="Contact" class="border p-2" required>
+          <input name="hospitalAddress" placeholder="Address" class="border p-2" required>
+          <input name="countryName" placeholder="Country" class="border p-2" required>
+          <input name="stateName" placeholder="State" class="border p-2" required>
+          <input name="facilities" placeholder="Facilities (comma separated)" class="border p-2">
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+        </form>`);
+    }
+
+    async function submitHospitalReg(event) {
+      event.preventDefault();
+      const form = event.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.facilities = data.facilities ? data.facilities.split(",").map(f => f.trim()) : [];
+      const res = await fetch("/contactUs/hospitalRegistrationRequest", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const msgEl = document.getElementById("modalMsg");
+      const text = await res.text();
+      msgEl.innerText = text;
+      msgEl.classList.remove("hidden");
+      msgEl.className = res.ok ? "text-green-600 font-semibold" : "text-red-600 font-semibold";
+    }
+
+    // Rate Our Service
+    async function openHospitalReview() {
+      let hospitalOptions = "";
+      try {
+        const res = await fetch("/hospital/allHospitalList");
+        if (res.ok) {
+          const hospitals = await res.json();
+          hospitalOptions = hospitals.map(h => `<option value="${h}">${h}</option>`).join("");
+        }
+      } catch {}
+      showModal("Rate Hospital", `
+          <form onsubmit="submitReview(event,'/hospital/addReview')" class="grid gap-2">
+            <input name="appUserEmail" placeholder="Your Email" class="border p-2" required>
+            <select name="hospitalName" class="border p-2" required>${hospitalOptions}</select>
+            <input type="number" step="0.1" max="5" name="hospitalRating" placeholder="Rating (0-5)" class="border p-2" required>
+            <textarea name="comments" placeholder="Comments" class="border p-2" required></textarea>
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+          </form>
+        `);
+    }
+
+    async function openDoctorReview() {
+      let doctorOptions = "";
+      try {
+        const res = await fetch("/doctor/allDoctorList");
+        if (res.ok) {
+          const doctors = await res.json();
+          doctorOptions = doctors.map(d => `<option value="${d}">${d}</option>`).join("");
+        }
+      } catch {}
+      showModal("Rate Doctor", `
+      <form onsubmit="submitReview(event,'/doctor/addReview')" class="grid gap-2">
+        <input name="userEmail" placeholder="Your Email" class="border p-2" required>
+        <select name="doctorName" class="border p-2" required>${doctorOptions}</select>
+        <input type="number" step="0.1" max="5" name="doctorRatting" placeholder="Rating (0-5)" class="border p-2" required>
+        <textarea name="comment" placeholder="Comment" class="border p-2" required></textarea>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+      </form>
+    `);
+    }
+
+    function openGlobalReview() {
+      showModal("Overall Experience", `
+          <form onsubmit="submitReview(event,'/globalReview/register')" class="grid gap-2">
+            <input name="userEmail" placeholder="Your Email" class="border p-2" required>
+            <input type="number" step="0.1" max="5" name="rating" placeholder="Rating (0-5)" class="border p-2" required>
+            <textarea name="comments" placeholder="Comments" class="border p-2" required></textarea>
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+          </form>
+        `);
+
+    }
+
+    async function submitReview(event, url) {
+      event.preventDefault();
+      const form = event.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+      const res = await fetch(url, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const msgEl = document.getElementById("modalMsg");
+      const text = await res.text();
+      msgEl.innerText = text;
+      msgEl.classList.remove("hidden");
+      msgEl.className = res.ok ? "text-green-600 font-semibold" : "text-red-600 font-semibold";
+    }
+
+    // Helpers
+    function showModal(title, content, isError = false) {
+      document.getElementById("modalTitle").innerText = title;
+      document.getElementById("modalContent").innerHTML = content;
+      const msgEl = document.getElementById("modalMsg");
+      msgEl.classList.add("hidden");
+      msgEl.innerText = "";
+      document.getElementById("modal").classList.remove("hidden");
+    }
+    function closeModal() {
+      document.getElementById("modal").classList.add("hidden");
+    }
+    function showSimpleForm(url, title, field) {
+      showModal(title, `
+        <form onsubmit="submitSimple(event,'${url}')" class="grid gap-2">
+          <input name="${field}" placeholder="${field}" class="border p-2" required>
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+        </form>`);
+    }
+    async function submitSimple(event, url) {
+      event.preventDefault();
+      const form = event.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+      const res = await fetch(url, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const msgEl = document.getElementById("modalMsg");
+      const text = await res.text();
+      msgEl.innerText = text;
+      msgEl.classList.remove("hidden");
+      msgEl.className = res.ok ? "text-green-600 font-semibold" : "text-red-600 font-semibold";
+    }
+</script>
+</body>
+</html>

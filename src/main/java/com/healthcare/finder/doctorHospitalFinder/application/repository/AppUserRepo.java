@@ -19,12 +19,12 @@ public interface AppUserRepo extends JpaRepository<AppUser, Long> {
     List<AppUserCountryStateProjection> getAppUserCountryAndState(@Param("email") String email);
 
     @Query("select a from AppUser a where a.userMobile = :mobile")
-    Optional<AppUser> findByUserMobile(String mobile);
+    Optional<AppUser> findByUserMobile(@Param("mobile") String mobile);
 
     @Query("select a from AppUser a where a.userEmail = :email")
-    Optional<AppUser> findByUserEmail(String email);
+    Optional<AppUser> findByUserEmail(@Param("email") String email);
 
     @Query("select a from AppUser a where a.userName = :name")
-    Optional<AppUser> findByUsername(String name);
+    Optional<AppUser> findByUsername(@Param("name") String name);
 
 }

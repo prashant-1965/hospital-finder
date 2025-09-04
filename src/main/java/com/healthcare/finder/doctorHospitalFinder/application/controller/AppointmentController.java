@@ -1,18 +1,14 @@
 package com.healthcare.finder.doctorHospitalFinder.application.controller;
 
-import com.healthcare.finder.doctorHospitalFinder.application.dto.AppointmentRegistrationDto;
-import com.healthcare.finder.doctorHospitalFinder.application.entity.AppUser;
+import com.healthcare.finder.doctorHospitalFinder.application.dto.appointmentRegistrationDto;
+import com.healthcare.finder.doctorHospitalFinder.application.projection.AppUserAppointmentProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.AppUserRepo;
 import com.healthcare.finder.doctorHospitalFinder.application.services.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/appointment")
@@ -22,13 +18,21 @@ public class AppointmentController {
     @Autowired
     private AppointmentService appointmentService;
 
-    @GetMapping("/register")
-    public ResponseEntity<String> tryAppointmentBooking(@RequestBody AppointmentRegistrationDto appointmentRegistrationDto){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        String email = user.getUsername();
-        AppUser appUser = appUserRepo.findByUserEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        return ResponseEntity.status(200).body(appointmentService.registerAppointment(appUser,appointmentRegistrationDto));
+    @GetMapping("/registerAppointment")
+    public ResponseEntity<String> tryDoctorAppointmentBooking(@RequestBody appointmentRegistrationDto appointmentRegistrationDto){
+        return ResponseEntity.status(200).body(appointmentService.registerAppointment(appointmentRegistrationDto));
+    }
+    @GetMapping("/getMyAppointment")
+    public ResponseEntity<List<AppUserAppointmentProjection>> getAllAppointments(@RequestParam String email){
+        return ResponseEntity.status(200).body(appointmentService.findAllBookedAppointmentByUserName(email));
+    }
+    @PutMapping("/updateStatus")
+    public ResponseEntity<String> updateAppointmentStatus(@RequestBody String email, @RequestBody String newStatus){
+        return ResponseEntity.status(200).body(appointmentService.updateAppointmentStatus(email,newStatus));
+    }
+    @DeleteMapping("/removeAppointment")
+    public ResponseEntity<String> removeAppointments(@RequestBody String email){
+        return ResponseEntity.status(200).body(appointmentService.removeAppointmentsByUserEmail(email));
     }
 
 }

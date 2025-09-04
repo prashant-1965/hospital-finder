@@ -1,11 +1,15 @@
-// Patient Dashboard JavaScript with Customization Modal
+// Patient Dashboard JavaScript with Enhanced Features
 class PatientDashboard {
     constructor() {
         this.apiEndpoint = '/dashboard/patient';
         this.doctorDetailsEndpoint = '/doctor/getDoctorDetails';
         this.customApiEndpoint = '/myCustom';
-        this.doctorsData = []; // Store doctors data for modal access
-        this.hospitalsData = []; // Store hospitals data for modal access
+        this.contactApiEndpoint = '/contactUs';
+        this.appointmentApiEndpoint = '/appointment';
+        this.doctorsData = [];
+        this.hospitalsData = [];
+        this.currentContactFormType = '';
+        this.currentAppointmentData = null;
         this.init();
     }
 
@@ -21,7 +25,6 @@ class PatientDashboard {
         }
     }
 
-    // Updated method in PatientDashboard class
     async loadDashboardData() {
         try {
             const response = await fetch(this.apiEndpoint);
@@ -31,27 +34,15 @@ class PatientDashboard {
             }
 
             const data = await response.json();
-
-            // Update welcome user name (NEW)
             this.updateWelcomeUser(data.currentUser);
-
-            // Update location details
             this.updateLocationDetails(data.locationDetails);
 
-            // Store data for modal access
             this.doctorsData = data.top5Doctors || [];
             this.hospitalsData = data.top5Hospitals || [];
 
-            // Render doctors list
             this.renderDoctorsList(data.top5Doctors);
-
-            // Render hospitals list
             this.renderHospitalsList(data.top5Hospitals);
-
-            // Render reviews
             this.renderReviewsList(data.top10RattingComment);
-
-            // Setup scroll animations after rendering
             this.setupScrollAnimations();
 
         } catch (error) {
@@ -61,7 +52,6 @@ class PatientDashboard {
         }
     }
 
-    // NEW method to update welcome user
     updateWelcomeUser(currentUser) {
         const welcomeUserElement = document.querySelector('.welcome-user');
         if (welcomeUserElement && currentUser) {
@@ -82,13 +72,9 @@ class PatientDashboard {
     async loadCountries() {
         try {
             const response = await fetch(`${this.customApiEndpoint}/getCountryList`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const countries = await response.json();
-
             const countrySelect = document.getElementById('countrySelect');
             countrySelect.innerHTML = '<option value="">Choose a country...</option>';
 
@@ -105,56 +91,40 @@ class PatientDashboard {
 
     async loadStates(countryName) {
         try {
-            // Show loading state for state dropdown
             const stateSelect = document.getElementById('stateSelect');
             stateSelect.innerHTML = '<option value="">Loading states...</option>';
             stateSelect.disabled = true;
 
-            // Correct URL structure to match your controller endpoint
             const response = await fetch(`${this.customApiEndpoint}/getStateList/${encodeURIComponent(countryName)}`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-                // Remove the body parameter - GET requests shouldn't have a body
+                headers: { 'Content-Type': 'application/json' }
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const states = await response.json();
-
-            // Clear loading state and populate states
             stateSelect.innerHTML = '<option value="">Choose a state...</option>';
 
-            // Check if states array is empty
             if (!states || states.length === 0) {
                 stateSelect.innerHTML = '<option value="">No states found</option>';
                 stateSelect.disabled = true;
                 return;
             }
 
-            // Populate states dropdown
             states.forEach(state => {
                 const option = document.createElement('option');
-                // Adjust property name based on your StateListProjection structure
-                option.value = state.stateName || state.name || state; // Handle different possible property names
+                option.value = state.stateName || state.name || state;
                 option.textContent = state.stateName || state.name || state;
                 stateSelect.appendChild(option);
             });
 
-            // Enable the dropdown
             stateSelect.disabled = false;
 
         } catch (error) {
             console.error('Error loading states:', error);
-
-            // Show error state
             const stateSelect = document.getElementById('stateSelect');
             stateSelect.innerHTML = '<option value="">Failed to load states</option>';
             stateSelect.disabled = true;
-
             this.showError('Failed to load states. Please try again.');
         }
     }
@@ -162,10 +132,7 @@ class PatientDashboard {
     async loadHospitalTypes() {
         try {
             const response = await fetch(`${this.customApiEndpoint}/hospitalType`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const types = await response.json();
             const hospitalTypeSelect = document.getElementById('hospitalTypeSelect');
@@ -185,21 +152,28 @@ class PatientDashboard {
     async loadFacilities() {
         try {
             const response = await fetch(`${this.customApiEndpoint}/allFacilities`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const facilities = await response.json();
 
+            // Load facilities for customization form
             const facilitySelect = document.getElementById('facilitySelect');
             facilitySelect.innerHTML = '<option value="">Choose a facility...</option>';
 
+            // Load facilities for appointment form
+            const appointmentFacilitySelect = document.getElementById('appointmentFacilityName');
+            appointmentFacilitySelect.innerHTML = '<option value="">Select a facility...</option>';
+
             facilities.forEach(facility => {
-                const option = document.createElement('option');
-                option.value = facility.facilityName;
-                option.textContent = `${facility.facilityName} - ${facility.facilityDescription}`;
-                facilitySelect.appendChild(option);
+                const option1 = document.createElement('option');
+                option1.value = facility.facilityName;
+                option1.textContent = `${facility.facilityName} - ${facility.facilityDescription}`;
+                facilitySelect.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = facility.facilityName;
+                option2.textContent = `${facility.facilityName} - ${facility.facilityDescription}`;
+                appointmentFacilitySelect.appendChild(option2);
             });
         } catch (error) {
             console.error('Error loading facilities:', error);
@@ -224,7 +198,6 @@ class PatientDashboard {
             return;
         }
 
-        // Create enough duplicates for seamless loop (at least 6 copies for smooth animation)
         const duplicatedDoctors = [];
         for (let i = 0; i < 6; i++) {
             duplicatedDoctors.push(...doctors);
@@ -250,9 +223,14 @@ class PatientDashboard {
                             <span class="rating-text">(${doctor.doctorRatting || 0}/5)</span>
                         </div>
                     </div>
-                    <button class="get-details-btn" onclick="handleGetDetails('doctor', ${index % doctors.length})">
-                        Get More Details
-                    </button>
+                    <div class="card-buttons">
+                        <button class="get-details-btn" onclick="handleGetDetails('doctor', ${index % doctors.length})">
+                            Details
+                        </button>
+                        <button class="book-appointment-btn" onclick="handleBookAppointment('doctor', ${index % doctors.length})">
+                            Book
+                        </button>
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -269,7 +247,6 @@ class PatientDashboard {
             return;
         }
 
-        // Create enough duplicates for seamless loop (at least 6 copies for smooth animation)
         const duplicatedHospitals = [];
         for (let i = 0; i < 6; i++) {
             duplicatedHospitals.push(...hospitals);
@@ -295,9 +272,14 @@ class PatientDashboard {
                             <span class="rating-text">(${hospital.hospitalRating || 0}/5)</span>
                         </div>
                     </div>
-                    <button class="get-details-btn" onclick="handleGetDetails('hospital', ${index % hospitals.length})">
-                        Get More Details
-                    </button>
+                    <div class="card-buttons">
+                        <button class="get-details-btn" onclick="handleGetDetails('hospital', ${index % hospitals.length})">
+                            Details
+                        </button>
+                        <button class="book-appointment-btn" onclick="handleBookAppointment('hospital', ${index % hospitals.length})">
+                            Book
+                        </button>
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -314,7 +296,6 @@ class PatientDashboard {
             return;
         }
 
-        // Create enough duplicates for seamless loop (at least 6 copies for smooth animation)
         const duplicatedReviews = [];
         for (let i = 0; i < 6; i++) {
             duplicatedReviews.push(...reviews);
@@ -345,7 +326,6 @@ class PatientDashboard {
     }
 
     setupScrollAnimations() {
-        // Setup hover pause functionality for all scrolling lists
         const scrollingLists = [
             document.getElementById('doctorsList'),
             document.getElementById('hospitalsList'),
@@ -354,17 +334,14 @@ class PatientDashboard {
 
         scrollingLists.forEach(list => {
             if (list) {
-                // Pause animation on hover
                 list.addEventListener('mouseenter', () => {
                     list.style.animationPlayState = 'paused';
                 });
 
-                // Resume animation when mouse leaves
                 list.addEventListener('mouseleave', () => {
                     list.style.animationPlayState = 'running';
                 });
 
-                // Also pause when individual cards are hovered
                 const cards = list.querySelectorAll('.doctor-card, .hospital-card, .review-card');
                 cards.forEach(card => {
                     card.addEventListener('mouseenter', () => {
@@ -382,10 +359,7 @@ class PatientDashboard {
     async loadDoctorDetails(doctorName) {
         try {
             const response = await fetch(`${this.doctorDetailsEndpoint}?doctorName=${encodeURIComponent(doctorName)}`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const doctorDetails = await response.json();
             this.renderDoctorDetailsModal(doctorDetails);
@@ -397,7 +371,6 @@ class PatientDashboard {
 
     renderDoctorDetailsModal(doctorDetails) {
         const modalContent = document.getElementById('doctorDetailsContent');
-
         modalContent.innerHTML = `
             <div class="doctor-details-header">
                 <div class="doctor-avatar">
@@ -491,6 +464,44 @@ class PatientDashboard {
             });
         }
 
+        // Contact Us Modal
+        const contactUsBtn = document.getElementById('contactUsBtn');
+        const contactUsModal = document.getElementById('contactUsModal');
+        const closeContactUsModal = document.getElementById('closeContactUsModal');
+
+        if (contactUsBtn && contactUsModal) {
+            contactUsBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                contactUsModal.style.display = 'block';
+            });
+        }
+
+        if (closeContactUsModal) {
+            closeContactUsModal.addEventListener('click', () => {
+                contactUsModal.style.display = 'none';
+            });
+        }
+
+        // Contact Form Modal
+        const contactFormModal = document.getElementById('contactFormModal');
+        const closeContactFormModal = document.getElementById('closeContactFormModal');
+
+        if (closeContactFormModal) {
+            closeContactFormModal.addEventListener('click', () => {
+                contactFormModal.style.display = 'none';
+            });
+        }
+
+        // Appointment Modal
+        const appointmentModal = document.getElementById('appointmentModal');
+        const closeAppointmentModal = document.getElementById('closeAppointmentModal');
+
+        if (closeAppointmentModal) {
+            closeAppointmentModal.addEventListener('click', () => {
+                appointmentModal.style.display = 'none';
+            });
+        }
+
         // Country change handler
         const countrySelect = document.getElementById('countrySelect');
         if (countrySelect) {
@@ -506,12 +517,28 @@ class PatientDashboard {
             });
         }
 
-        // Form submission
+        // Form submissions
         const customizationForm = document.getElementById('customizationForm');
         if (customizationForm) {
             customizationForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.submitCustomizationForm();
+            });
+        }
+
+        const dynamicContactForm = document.getElementById('dynamicContactForm');
+        if (dynamicContactForm) {
+            dynamicContactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitContactForm();
+            });
+        }
+
+        const appointmentForm = document.getElementById('appointmentForm');
+        if (appointmentForm) {
+            appointmentForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.submitAppointmentForm();
             });
         }
 
@@ -546,6 +573,15 @@ class PatientDashboard {
             if (event.target === customizationModal) {
                 customizationModal.style.display = 'none';
             }
+            if (event.target === contactUsModal) {
+                contactUsModal.style.display = 'none';
+            }
+            if (event.target === contactFormModal) {
+                contactFormModal.style.display = 'none';
+            }
+            if (event.target === appointmentModal) {
+                appointmentModal.style.display = 'none';
+            }
         };
 
         // Quick action button handlers
@@ -560,38 +596,32 @@ class PatientDashboard {
         // Refresh data every 5 minutes
         setInterval(() => {
             this.refreshDashboard();
-        }, 300000); // 5 minutes
+        }, 300000);
     }
 
-    // UPDATED: New submitCustomizationForm method with redirect logic
     async submitCustomizationForm() {
-        // Collect form values
         const country = document.getElementById('countrySelect').value;
         const state = document.getElementById('stateSelect').value;
         const hospitalType = document.getElementById('hospitalTypeSelect').value;
         const facility = document.getElementById('facilitySelect').value;
 
-        // Validate required fields
         if (!country || !state || !hospitalType || !facility) {
             this.showError('Please fill in all required fields.');
             return;
         }
 
-        // Create the customData map (as key-value pairs for URL params)
         const customData = new Map();
         customData.set('country', country);
         customData.set('state', state);
-        customData.set('countryName', country); // Backend expects this key
-        customData.set('specialisation', facility); // Using facility as specialisation
+        customData.set('countryName', country);
+        customData.set('specialisation', facility);
 
-        // Convert Map to URL parameters
         const urlParams = new URLSearchParams();
         customData.forEach((value, key) => {
             urlParams.append(key, value);
         });
 
         try {
-            // Determine redirect URL based on hospital type
             let redirectUrl;
             if (hospitalType.toLowerCase() === 'private') {
                 redirectUrl = `/redirectPrivateHospital?${urlParams.toString()}`;
@@ -602,13 +632,8 @@ class PatientDashboard {
                 return;
             }
 
-            // Close modal first
             document.getElementById('customizationModal').style.display = 'none';
-
-            // Show loading indication (optional)
             console.log('Redirecting to:', redirectUrl);
-
-            // Redirect to the appropriate dashboard
             window.location.href = redirectUrl;
 
         } catch (error) {
@@ -617,20 +642,320 @@ class PatientDashboard {
         }
     }
 
+    showContactForm(formType) {
+        this.currentContactFormType = formType;
+        const contactFormModal = document.getElementById('contactFormModal');
+        const contactFormTitle = document.getElementById('contactFormTitle');
+        const contactFormContent = document.getElementById('contactFormContent');
+
+        // Hide contact us modal
+        document.getElementById('contactUsModal').style.display = 'none';
+
+        let title = '';
+        let formHtml = '';
+
+        switch(formType) {
+            case 'doctorRegistration':
+                title = '<i class="fas fa-user-md"></i> Doctor Registration Request';
+                formHtml = this.getDoctorRegistrationForm();
+                break;
+            case 'doctorRemoval':
+                title = '<i class="fas fa-user-minus"></i> Doctor Removal Request';
+                formHtml = this.getDoctorRemovalForm();
+                break;
+            case 'hospitalRegistration':
+                title = '<i class="fas fa-hospital"></i> Hospital Registration Request';
+                formHtml = this.getHospitalRegistrationForm();
+                break;
+            case 'hospitalRemoval':
+                title = '<i class="fas fa-hospital-user"></i> Hospital Removal Request';
+                formHtml = this.getHospitalRemovalForm();
+                break;
+        }
+
+        contactFormTitle.innerHTML = title;
+        contactFormContent.innerHTML = formHtml;
+        contactFormModal.style.display = 'block';
+    }
+
+    getDoctorRegistrationForm() {
+        return `
+            <div class="form-group">
+                <label class="form-label" for="doctorName">Doctor Name *</label>
+                <input type="text" id="doctorName" name="doctorName" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="doctorAge">Age *</label>
+                <input type="number" id="doctorAge" name="doctorAge" class="form-input" min="25" max="80" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="doctorGender">Gender *</label>
+                <select id="doctorGender" name="doctorGender" class="form-select" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="doctorYearsOfExperience">Years of Experience *</label>
+                <input type="number" id="doctorYearsOfExperience" name="doctorYearsOfExperience" class="form-input" min="0" max="50" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="doctorGraduateCollege">Graduate College *</label>
+                <input type="text" id="doctorGraduateCollege" name="doctorGraduateCollege" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="doctorFieldOfExpertise">Field of Expertise *</label>
+                <input type="text" id="doctorFieldOfExpertise" name="doctorFieldOfExpertise" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="doctorEmail">Email *</label>
+                <input type="email" id="doctorEmail" name="doctorEmail" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="doctorMobile">Mobile Number *</label>
+                <input type="tel" id="doctorMobile" name="doctorMobile" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="doctorDetailAddress">Address *</label>
+                <textarea id="doctorDetailAddress" name="doctorDetailAddress" class="form-textarea" required></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="doctorType">Doctor Type *</label>
+                <select id="doctorType" name="doctorType" class="form-select" required>
+                    <option value="">Select Type</option>
+                    <option value="government">Government</option>
+                    <option value="private">Private</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="hospitalAppliedFor">Hospital Applied For *</label>
+                <input type="text" id="hospitalAppliedFor" name="hospitalAppliedFor" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="countryName">Country you want to work in*</label>
+                <input type="text" id="countryName" name="countryName" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="stateName">State you want to work in*</label>
+                <input type="text" id="stateName" name="stateName" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="facilityNames">Facility Names (comma-separated)</label>
+                <input type="text" id="facilityNames" name="facilityNames" class="form-input" placeholder="e.g. Cardiology, Neurology">
+            </div>
+        `;
+    }
+
+    getDoctorRemovalForm() {
+        return `
+            <div class="form-group">
+                <label class="form-label" for="doctorEmail">Doctor Email *</label>
+                <input type="email" id="doctorEmail" name="doctorEmail" class="form-input" required>
+                <small style="color: #64748b; font-size: 0.85rem;">Enter the email address of the doctor to be removed</small>
+            </div>
+        `;
+    }
+
+    getHospitalRegistrationForm() {
+        return `
+            <div class="form-group">
+                <label class="form-label" for="hospitalName">Hospital Name *</label>
+                <input type="text" id="hospitalName" name="hospitalName" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="hospitalType">Hospital Type *</label>
+                <select id="hospitalType" name="hospitalType" class="form-select" required>
+                    <option value="">Select Type</option>
+                    <option value="government">Government</option>
+                    <option value="private">Private</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="hospitalAddress">Hospital Address *</label>
+                <textarea id="hospitalAddress" name="hospitalAddress" class="form-textarea" required></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="hospitalEmail">Contact Email *</label>
+                <input type="email" id="hospitalEmail" name="hospitalEmail" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="hospitalPhone">Contact Phone *</label>
+                <input type="tel" id="hospitalPhone" name="hospitalPhone" class="form-input" required>
+            </div>
+        `;
+    }
+
+    getHospitalRemovalForm() {
+        return `
+            <div class="form-group">
+                <label class="form-label" for="hospitalName">Hospital Name *</label>
+                <input type="text" id="hospitalName" name="hospitalName" class="form-input" required>
+                <small style="color: #64748b; font-size: 0.85rem;">Enter the name of the hospital to be removed</small>
+            </div>
+        `;
+    }
+
+    async submitContactForm() {
+        const form = document.getElementById('dynamicContactForm');
+        const formData = new FormData(form);
+        const data = {};
+
+        // Convert FormData to regular object
+        for (let [key, value] of formData.entries()) {
+            if (key === 'facilityNames' && value) {
+                // Convert comma-separated string to array
+                data[key] = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+            } else {
+                data[key] = value;
+            }
+        }
+
+        let endpoint = '';
+        let requestBody = null;
+
+        switch(this.currentContactFormType) {
+            case 'doctorRegistration':
+                endpoint = `${this.contactApiEndpoint}/doctorRegistrationRequest`;
+                requestBody = data;
+                break;
+            case 'doctorRemoval':
+                endpoint = `${this.contactApiEndpoint}/doctorRemovalRequest`;
+                requestBody = data.doctorEmail;
+                break;
+            case 'hospitalRegistration':
+                endpoint = `${this.contactApiEndpoint}/hospitalRegistrationRequest`;
+                requestBody = data;
+                break;
+            case 'hospitalRemoval':
+                endpoint = `${this.contactApiEndpoint}/hospitalRemovalRequest`;
+                requestBody = data.hospitalName;
+                break;
+        }
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (response.status === 200) {
+                this.showNotification('Request submitted successfully!', 'success');
+                document.getElementById('contactFormModal').style.display = 'none';
+
+                // Auto logout after 10 seconds for successful requests
+                setTimeout(() => {
+                    this.showNotification('Logging out...', 'info');
+                    setTimeout(() => {
+                        window.location.href = '/logout';
+                    }, 2000);
+                }, 10000);
+            } else {
+                const errorMessage = await response.text();
+                this.showError(errorMessage || 'Request failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error submitting contact form:', error);
+            this.showError('Network error. Please check your connection and try again.');
+        }
+    }
+
+    showAppointmentModal(type, index) {
+        const appointmentModal = document.getElementById('appointmentModal');
+        const doctorNameField = document.getElementById('appointmentDoctorName');
+        const hospitalNameField = document.getElementById('appointmentHospitalName');
+
+        let doctorName = '';
+        let hospitalName = '';
+
+        if (type === 'doctor' && this.doctorsData[index]) {
+            doctorName = this.doctorsData[index].doctorName || '';
+            hospitalName = this.doctorsData[index].hospitalName || '';
+        } else if (type === 'hospital' && this.hospitalsData[index]) {
+            hospitalName = this.hospitalsData[index].hospitalName || '';
+            // For hospital booking, we might need to select a doctor later
+            doctorName = 'To be assigned';
+        }
+
+        doctorNameField.value = doctorName;
+        hospitalNameField.value = hospitalName;
+
+        // Store current appointment data for submission
+        this.currentAppointmentData = {
+            type: type,
+            index: index,
+            doctorName: doctorName,
+            hospitalName: hospitalName
+        };
+
+        appointmentModal.style.display = 'block';
+    }
+
+    async submitAppointmentForm() {
+        const facilityName = document.getElementById('appointmentFacilityName').value;
+        const dateTime = document.getElementById('appointmentDateTime').value;
+
+        if (!facilityName || !dateTime) {
+            this.showError('Please fill in all required fields.');
+            return;
+        }
+
+        if (!this.currentAppointmentData) {
+            this.showError('Appointment data not found. Please try again.');
+            return;
+        }
+
+        const appointmentData = {
+            doctorName: this.currentAppointmentData.doctorName,
+            hospitalName: this.currentAppointmentData.hospitalName,
+            facilityName: facilityName,
+            localDateTime: dateTime
+        };
+
+        try {
+            const response = await fetch(`${this.appointmentApiEndpoint}/register`, {
+                method: 'GET', // Note: Using GET as specified in requirements
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(appointmentData)
+            });
+
+            if (response.status === 200) {
+                this.showNotification('Appointment booked successfully!', 'success');
+                document.getElementById('appointmentModal').style.display = 'none';
+
+                // Reset form
+                document.getElementById('appointmentForm').reset();
+                this.currentAppointmentData = null;
+            } else {
+                const errorMessage = await response.text();
+                this.showError(errorMessage || 'Failed to book appointment. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error booking appointment:', error);
+            this.showError('Network error. Please check your connection and try again.');
+        }
+    }
+
     handleQuickAction(actionText) {
         console.log('Quick action clicked:', actionText);
         switch(actionText) {
             case 'Find Doctor':
-                // window.location.href = '/find-doctors';
+                // Implementation for find doctor
                 break;
             case 'Find Hospital':
-                // window.location.href = '/find-hospitals';
+                // Implementation for find hospital
                 break;
             case 'Book Appointment':
-                // window.location.href = '/book-appointment';
+                this.showNotification('Please use the "Book" button on doctor or hospital cards to book appointments.', 'info');
                 break;
             case 'My Prescriptions':
-                // window.location.href = '/prescriptions';
+                // Implementation for prescriptions
                 break;
         }
     }
@@ -651,32 +976,20 @@ class PatientDashboard {
 
         let starsHtml = '<div class="stars">';
 
-        // Full stars
         for (let i = 0; i < fullStars; i++) {
             starsHtml += '<i class="fas fa-star star"></i>';
         }
 
-        // Half star
         if (hasHalfStar) {
             starsHtml += '<i class="fas fa-star-half-alt star"></i>';
         }
 
-        // Empty stars
         for (let i = 0; i < emptyStars; i++) {
             starsHtml += '<i class="far fa-star star empty"></i>';
         }
 
         starsHtml += '</div>';
         return starsHtml;
-    }
-
-    getInitials(name) {
-        if (!name || name === 'Anonymous') return 'A';
-        return name.split(' ')
-                  .map(word => word.charAt(0))
-                  .join('')
-                  .substring(0, 2)
-                  .toUpperCase();
     }
 
     getEmptyState(message, iconClass) {
@@ -711,12 +1024,25 @@ class PatientDashboard {
         }
     }
 
+    showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notificationMessage');
+
+        if (notification && notificationMessage) {
+            notificationMessage.textContent = message;
+            notification.className = `notification ${type} show`;
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+    }
+
     showDoctorDetailsModal(doctorName) {
         const modal = document.getElementById('doctorDetailsModal');
         const content = document.getElementById('doctorDetailsContent');
 
         if (modal && content) {
-            // Show loading state
             content.innerHTML = `
                 <div class="loading">
                     <i class="fas fa-spinner fa-spin"></i> Loading doctor details...
@@ -724,8 +1050,6 @@ class PatientDashboard {
             `;
 
             modal.style.display = 'block';
-
-            // Load doctor details
             this.loadDoctorDetails(doctorName);
         }
     }
@@ -741,12 +1065,13 @@ class PatientDashboard {
 // Global reference to dashboard instance
 let dashboardInstance = null;
 
-// Initialize dashboard when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    dashboardInstance = new PatientDashboard();
-});
+// Global functions for button handlers
+window.showContactForm = function(formType) {
+    if (dashboardInstance) {
+        dashboardInstance.showContactForm(formType);
+    }
+};
 
-// Global function to handle "Get More Details" button clicks
 window.handleGetDetails = function(type, index) {
     console.log(`Get details clicked for ${type} at index ${index}`);
 
@@ -760,23 +1085,31 @@ window.handleGetDetails = function(type, index) {
             }
             break;
         case 'hospital':
-            // Navigate to hospital details page
-            // window.location.href = `/hospital-details/${index}`;
             alert(`Viewing details for hospital at index ${index}`);
-            break;
-        case 'review':
-            // Review cards no longer have "Get More Details" button
-            console.log('Review details not implemented');
             break;
         default:
             console.log('Unknown detail type');
     }
 };
 
+window.handleBookAppointment = function(type, index) {
+    console.log(`Book appointment clicked for ${type} at index ${index}`);
+
+    if (dashboardInstance) {
+        dashboardInstance.showAppointmentModal(type, index);
+    } else {
+        alert('Dashboard not initialized');
+    }
+};
+
+// Initialize dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    dashboardInstance = new PatientDashboard();
+});
+
 // Handle page visibility changes to refresh data when user returns
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-        // Page became visible, refresh data
         setTimeout(() => {
             if (dashboardInstance) {
                 dashboardInstance.refreshDashboard();
