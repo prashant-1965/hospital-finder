@@ -44,11 +44,15 @@ public class HospitalController {
         return ResponseEntity.status(200).body(hospitalService.findHospitalDetailByName(hospitalName));
     }
     @GetMapping("/findHospitalByDoctorEmail")
-    public ResponseEntity<String> findHospitalByDoctorName(@RequestParam String doctorEmail){
+    public ResponseEntity<String> findHospitalByDoctorEmail(@RequestParam String doctorEmail){
         return ResponseEntity.status(200).body(hospitalService.findHospitalByDoctoEmail(doctorEmail));
     }
     @GetMapping("/allHospitalByFacilityName")
     public ResponseEntity<List<String>> findHospitalByFacilityName(@RequestParam String facilityName){
         return ResponseEntity.status(200).body(hospitalService.findHospitalByFacilityName(facilityName));
+    }
+    @GetMapping("/allHospitalByFacilityNameAndDoctorEmail")
+    public ResponseEntity<List<String>> findHospitalByFacilityNameAndDoctorEmail(@RequestParam String facilityName, @RequestParam String doctorEmail){
+        return ResponseEntity.status(200).body(hospitalService.findHospitalByFacilityNameAndDoctorEmail(facilityName,doctorEmail));
     }
 }

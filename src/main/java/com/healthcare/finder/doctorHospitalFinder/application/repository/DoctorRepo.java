@@ -70,7 +70,7 @@ public interface DoctorRepo extends JpaRepository<Doctor, Long> {
     Doctor findByDoctorName(@Param("name") String name);
 
     @Query("select new com.healthcare.finder.doctorHospitalFinder.application.projection.IndividualDoctorDetailProjection(" +
-            "d.doctorName, d.doctorAge, d.doctorGender, d.doctorYearsOfExperience, d.doctorRating, d.doctorGraduateCollege, d.doctorFieldOfExpertise, d.doctorType) " +
+            "d.doctorName, d.doctorAge, d.doctorGender, d.doctorEmail, d.doctorYearsOfExperience, d.doctorRating, d.doctorGraduateCollege, d.doctorFieldOfExpertise, d.doctorType) " +
             "from Doctor d where d.doctorName = :name")
     IndividualDoctorDetailProjection findDetailsByDoctorName(@Param("name") String name);
 

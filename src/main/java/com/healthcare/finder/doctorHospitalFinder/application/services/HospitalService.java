@@ -17,4 +17,5 @@ public interface HospitalService {
     String findHospitalByDoctoEmail(String doctorEmail);
     IndividualHospitalDetailProjection findHospitalDetailByName(String hospitalName);
     List<String> findHospitalByFacilityName(String facilityName);
+    List<String> findHospitalByFacilityNameAndDoctorEmail(String facilityName,String doctorEmail);
 }

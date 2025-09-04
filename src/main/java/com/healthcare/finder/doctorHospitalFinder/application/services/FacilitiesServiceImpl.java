@@ -1,6 +1,7 @@
 package com.healthcare.finder.doctorHospitalFinder.application.services;
 
 import com.healthcare.finder.doctorHospitalFinder.application.classException.FacilitiesException;
+import com.healthcare.finder.doctorHospitalFinder.application.classException.HospitalException;
 import com.healthcare.finder.doctorHospitalFinder.application.dto.MedicalFacilitiesRegisterDto;
 import com.healthcare.finder.doctorHospitalFinder.application.entity.MedicalFacilities;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.FacilityListProjection;
@@ -43,5 +44,23 @@ public class FacilitiesServiceImpl implements FacilitiesService {
         medicalFacilities.setFacilityDescription(medicalFacilitiesRegisterDto.getFacilityDescription());
         facilitiesRepo.save(medicalFacilities);
         return "Facility Added Successfully";
+    }
+
+    @Override
+    public List<String> findFacilityByDoctorEmail(String doctorEmail) throws FacilitiesException {
+        List<String> doctorList = facilitiesRepo.findFacilityByDoctorEmail(doctorEmail);
+        if(doctorList.isEmpty()){
+            throw new FacilitiesException(doctorEmail+" is not providing any Facility!",HttpStatus.NOT_FOUND);
+        }
+        return doctorList;
+    }
+
+    @Override
+    public List<String> findFacilityByHospitalName(String hospitalName) throws FacilitiesException {
+        List<String> facilityList = facilitiesRepo.getFacilityByHospitalName(hospitalName);
+        if (facilityList.isEmpty()){
+            throw new FacilitiesException(hospitalName+" doesn't provide any facility",HttpStatus.NOT_FOUND);
+        }
+        return facilityList;
     }
 }

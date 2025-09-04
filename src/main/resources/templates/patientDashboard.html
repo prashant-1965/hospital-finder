@@ -1,62 +1,32 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Patient Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs" defer></script>
     <style>
-        /* Ensure Tailwind loads properly and add any missing styles */
-        .hover\:text-blue-600:hover {
-            color: #2563eb;
-        }
-        .hover\:bg-red-600:hover {
-            background-color: #dc2626;
-        }
-        .hover\:shadow-lg:hover {
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        }
-        .hover\:text-black:hover {
-            color: #000000;
-        }
-        .sticky {
-            position: sticky;
-        }
-        .z-50 {
-            z-index: 50;
-        }
-        .z-40 {
-            z-index: 40;
-        }
-        /* Ensure modal backdrop works */
-        .bg-opacity-50 {
-            background-color: rgb(0 0 0 / 0.5);
-        }
-        /* Ensure transitions work */
-        .transition {
-            transition-property: all;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 150ms;
-        }
+        .hover\:text-blue-600:hover { color: #2563eb; }
+        .hover\:bg-red-600:hover { background-color: #dc2626; }
+        .hover\:shadow-lg:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
+        .sticky { position: sticky; }
+        .z-50 { z-index: 50; }
+        .bg-opacity-50 { background-color: rgba(0,0,0,0.5); }
+        .transition { transition: all 150ms cubic-bezier(.4,0,.2,1); }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
 <!-- Top Navbar -->
 <nav class="flex justify-between items-center bg-white shadow px-6 py-3 sticky top-0 z-50">
-    <!-- Left: Logo -->
     <div class="flex items-center space-x-2">
         <span class="text-2xl font-bold text-blue-600">HealthCare</span>
     </div>
-
-    <!-- Center: Navigation Links -->
     <div class="flex space-x-6">
         <button onclick="openModal('contactUs')" class="hover:text-blue-600">Contact Us</button>
         <button onclick="openModal('rateService')" class="hover:text-blue-600">Rate Our Service</button>
         <button onclick="showMyAppointments()" class="hover:text-blue-600">My Appointments</button>
         <button class="hover:text-blue-600">Customise Request</button>
     </div>
-
-    <!-- Right: Profile + Logout -->
     <div class="flex items-center space-x-4">
         <div class="flex items-center space-x-2">
             <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
@@ -64,23 +34,36 @@
             </div>
             <span id="currentUser" class="font-medium"></span>
         </div>
-        <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-                onclick="window.location.href='/logout'">Logout</button>
+        <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600" onclick="window.location.href='/logout'">Logout</button>
     </div>
 </nav>
 
 <div class="flex">
     <!-- Sidebar -->
-    <aside class="w-64 h-screen bg-white shadow-md p-4 sticky top-14">
+    <aside class="w-64 h-screen bg-white shadow-md p-4 sticky top-14 space-y-4">
+        <!-- Search moved to sidebar -->
+        <div class="space-y-3">
+            <div>
+                <label class="block text-sm font-medium mb-1">Search Doctor</label>
+                <input id="doctorSearchInput" list="doctorDatalist" placeholder="Type doctor name..." class="border p-2 w-full" />
+                <datalist id="doctorDatalist"></datalist>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Search Hospital</label>
+                <input id="hospitalSearchInput" list="hospitalDatalist" placeholder="Type hospital name..." class="border p-2 w-full" />
+                <datalist id="hospitalDatalist"></datalist>
+            </div>
+        </div>
+
         <ul class="space-y-4">
-            <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Find Doctors</button></li>
-            <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Find Hospitals</button></li>
+<!--            <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Find Doctors</button></li>-->
+<!--            <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Find Hospitals</button></li>-->
             <li><button onclick="openBookAppointment()" class="w-full text-left px-4 py-2 bg-blue-100 rounded">Book Appointments</button></li>
         </ul>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 p-6 space-y-8">
+    <main class="flex-1 p-6 space-y-6">
         <!-- Location -->
         <div class="bg-white p-4 rounded shadow">
             <h2 class="text-xl font-semibold">Location</h2>
@@ -107,306 +90,591 @@
     </main>
 </div>
 
-<!-- General Modal -->
+<!-- Single reusable modal -->
 <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
     <div class="bg-white p-6 rounded shadow-lg w-96 max-h-[90vh] overflow-y-auto relative">
-        <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-black font-bold">X</button>
+        <button id="modalCloseBtn" onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-black font-bold">X</button>
         <h3 id="modalTitle" class="text-xl font-semibold mb-4"></h3>
         <div id="modalContent" class="text-gray-700"></div>
         <div id="modalMsg" class="hidden text-center font-semibold mt-2"></div>
     </div>
 </div>
 
-<!-- Toast Notifications -->
+<!-- Toast container -->
 <div id="toastContainer" class="fixed top-4 left-4 flex flex-col space-y-2 z-50"></div>
 
-<!-- Scripts -->
 <script>
-    document.addEventListener("DOMContentLoaded", async () => {
+    /* ---------------------
+       Utilities
+       --------------------- */
+    function escapeHtml(input) {
+      if (input === null || input === undefined) return '';
+      return String(input)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function showToast(message, type = 'error', duration = 4000) {
+      const toastContainer = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-2 rounded shadow text-white font-medium transition transform ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`;
+      toast.innerText = message;
+      toastContainer.appendChild(toast);
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-100%)';
+      requestAnimationFrame(() => {
+        toast.style.transition = 'all 0.3s ease';
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+      });
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-100%)';
+        toast.addEventListener('transitionend', () => toast.remove());
+      }, duration);
+    }
+
+    // Convert array (strings or objects) -> option HTML.
+    function toOptions(list, { valueKeys = ['id','value','facilityName','hospitalName','doctorName','name'], labelKeys = ['facilityName','hospitalName','doctorName','name','label'] } = {}) {
+      if (!Array.isArray(list)) return '';
+      return list.map(item => {
+        if (item === null || item === undefined) return '';
+        if (typeof item === 'string' || typeof item === 'number') {
+          const s = String(item);
+          return `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`;
+        }
+        const getFirst = (keys) => {
+          for (const k of keys) if (item[k] !== undefined && item[k] !== null) return item[k];
+          return undefined;
+        };
+        const label = getFirst(labelKeys) ?? getFirst(valueKeys) ?? JSON.stringify(item);
+        const value = getFirst(valueKeys) ?? label;
+        return `<option value="${escapeHtml(String(value))}">${escapeHtml(String(label))}</option>`;
+      }).join('');
+    }
+    function toOptionsSmall(list, { valueKeys=['facilityName','id','name'], labelKeys=['facilityName','name'] } = {}) {
+      return toOptions(list, { valueKeys, labelKeys });
+    }
+
+    /* ---------------------
+       Modal handlers
+       --------------------- */
+    function showModal(title, content) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalContent').innerHTML = content;
+      const msgEl = document.getElementById('modalMsg');
+      msgEl.classList.add('hidden'); msgEl.innerText = '';
+      document.getElementById('modal').classList.remove('hidden');
+    }
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('modalContent').innerHTML = '';
+    }
+
+    /* ---------------------
+       Initial dashboard + prefetch lists for search
+       --------------------- */
+    let doctorNameList = [];
+    let hospitalNameList = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
       try {
-        const response = await fetch("/dashboard/patient");
-        if (!response.ok) throw new Error("Failed to load dashboard");
-        const data = await response.json();
+        const res = await fetch('/dashboard/patient');
+        if (!res.ok) throw new Error('Failed to load dashboard');
+        const data = await res.json();
 
-        document.getElementById("currentUser").innerText = data.currentUser;
-        document.getElementById("locationDetails").innerText = data.locationDetails;
-        document.getElementById("userInitials").innerText = data.currentUser.charAt(0).toUpperCase();
+        document.getElementById('currentUser').innerText = data.currentUser || '';
+        document.getElementById('userInitials').innerText = data.currentUser ? data.currentUser.charAt(0).toUpperCase() : 'U';
+        document.getElementById('locationDetails').innerText = data.locationDetails || '';
 
-        // Doctors
-        const doctorList = document.getElementById("doctorList");
-        data.top5Doctors.forEach(doc => {
-          doctorList.innerHTML += `
+        // populate cards
+        const doctorList = document.getElementById('doctorList');
+        doctorList.innerHTML = '';
+        (data.top5Doctors || []).forEach(doc => {
+          const dName = escapeHtml(doc.doctorName || '');
+          const dEmail = escapeHtml(doc.doctorEmail || '');
+          const card = `
             <div class="bg-white p-4 rounded shadow hover:shadow-lg transition">
-              <h3 class="font-semibold text-lg">${doc.doctorName}</h3>
-              <p class="text-sm text-gray-600">Experience: ${doc.yearOfExp} yrs</p>
-              <p class="text-sm">⭐ ${doc.doctorRatting}</p>
-              <p class="text-sm">${doc.doctorDetailAddress || "Coming Soon"}</p>
+              <h3 class="font-semibold text-lg">${dName}</h3>
+              <p class="text-sm text-gray-600">Experience: ${escapeHtml(doc.yearOfExp ?? '')} yrs</p>
+              <p class="text-sm">⭐ ${escapeHtml(doc.doctorRatting ?? '')}</p>
+              <p class="text-sm">${escapeHtml(doc.doctorDetailAddress || 'Coming Soon')}</p>
               <div class="mt-3 flex space-x-2">
-                <button onclick="getDoctorDetail('${doc.doctorName}')"
-                        class="bg-blue-500 text-white px-3 py-1 rounded">More Detail</button>
-                <button onclick="openBookAppointment()" class="bg-green-500 text-white px-3 py-1 rounded">Book Appointment</button>
+                <button onclick="getDoctorDetail('${encodeURIComponent(doc.doctorName)}')" class="bg-blue-500 text-white px-3 py-1 rounded">More Detail</button>
+                <button onclick="openBookAppointmentDoctor('${dName.replace(/'/g, '&#39;')}','${dEmail.replace(/'/g, '&#39;')}')" class="bg-green-500 text-white px-3 py-1 rounded">Book Appointment</button>
               </div>
             </div>`;
+          doctorList.insertAdjacentHTML('beforeend', card);
         });
 
-        // Hospitals
-        const hospitalList = document.getElementById("hospitalList");
-        data.top5Hospitals.forEach(hos => {
-          hospitalList.innerHTML += `
+        const hospitalList = document.getElementById('hospitalList');
+        hospitalList.innerHTML = '';
+        (data.top5Hospitals || []).forEach(hos => {
+          const hName = escapeHtml(hos.hospitalName || '');
+          const card = `
             <div class="bg-white p-4 rounded shadow hover:shadow-lg transition">
-              <h3 class="font-semibold text-lg">${hos.hospitalName}</h3>
-              <p class="text-sm">Type: ${hos.hospitalType}</p>
-              <p class="text-sm">⭐ ${hos.hospitalRating}</p>
-              <p class="text-sm">${hos.hospitalAddress || "Coming Soon"}</p>
+              <h3 class="font-semibold text-lg">${hName}</h3>
+              <p class="text-sm">Type: ${escapeHtml(hos.hospitalType || '')}</p>
+              <p class="text-sm">⭐ ${escapeHtml(hos.hospitalRating ?? '')}</p>
+              <p class="text-sm">${escapeHtml(hos.hospitalAddress || 'Coming Soon')}</p>
               <div class="mt-3 flex space-x-2">
-                <button onclick="getHospitalDetail('${hos.hospitalName}')"
-                        class="bg-blue-500 text-white px-3 py-1 rounded">More Detail</button>
-                <button onclick="openBookAppointment()" class="bg-green-500 text-white px-3 py-1 rounded">Book Appointment</button>
+                <button onclick="getHospitalDetail('${encodeURIComponent(hos.hospitalName)}')" class="bg-blue-500 text-white px-3 py-1 rounded">More Detail</button>
+                <button onclick="openBookAppointmentHospital('${hName.replace(/'/g, '&#39;')}')" class="bg-green-500 text-white px-3 py-1 rounded">Book Appointment</button>
               </div>
             </div>`;
+          hospitalList.insertAdjacentHTML('beforeend', card);
         });
 
-        // Reviews
-        const reviewList = document.getElementById("reviewList");
-        data.top10RattingComment.forEach(rev => {
-          reviewList.innerHTML += `
+        const reviewList = document.getElementById('reviewList');
+        reviewList.innerHTML = '';
+        (data.top10RattingComment || []).forEach(rev => {
+          reviewList.insertAdjacentHTML('beforeend', `
             <li class="bg-white p-3 rounded shadow hover:shadow-lg transition">
-              <strong>${rev.userName}</strong> rated ⭐ ${rev.rating}<br>
-              <span>${rev.comments}</span>
-            </li>`;
+              <strong>${escapeHtml(rev.userName)}</strong> rated ⭐ ${escapeHtml(rev.rating)}<br>
+              <span>${escapeHtml(rev.comments)}</span>
+            </li>`);
         });
+
+        // prefetch for search
+        await loadDoctorNameList();
+        await loadHospitalNameList();
+
+        // wire search inputs (they are in sidebar now)
+        const doctorInput = document.getElementById('doctorSearchInput');
+        const hospitalInput = document.getElementById('hospitalSearchInput');
+        doctorInput.addEventListener('change', onDoctorSearchSelected);
+        doctorInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') onDoctorSearchEnter(e); });
+        hospitalInput.addEventListener('change', onHospitalSearchSelected);
+        hospitalInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') onHospitalSearchEnter(e); });
 
       } catch (err) {
-        alert("Error: " + err.message);
+        alert('Error: ' + err.message);
       }
     });
 
-    // --- Toast helper ---
-    function showToast(message, type = 'error', duration = 4000) {
-        const toastContainer = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = `px-4 py-2 rounded shadow text-white font-medium transition transform
-                           ${type === 'error' ? 'bg-red-600' : 'bg-green-600'}`;
-        toast.innerText = message;
-        toastContainer.appendChild(toast);
-
-        // Animate in
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(-100%)';
-        requestAnimationFrame(() => {
-            toast.style.transition = 'all 0.3s ease';
-            toast.style.opacity = '1';
-            toast.style.transform = 'translateX(0)';
-        });
-
-        // Remove after duration
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(-100%)';
-            toast.addEventListener('transitionend', () => toast.remove());
-        }, duration);
-    }
-
-    // --- Book Appointment ---
-    async function openBookAppointment() {
-        let facilityOptions = '';
-        try {
-            const res = await fetch('/facility/allFacilities');
-            if (!res.ok) throw new Error(await res.text());
-            const facilities = await res.json();
-            facilityOptions = facilities.map(f => `<option value="${f.facilityName}">${f.facilityName}</option>`).join('');
-        } catch (err) {
-            showToast(err.message, 'error');
-            return;
-        }
-
-        showModal('Book Appointment', `
-            <form id="appointmentForm" onsubmit="submitAppointment(event)" class="grid gap-2">
-                <input name="appUserEmail" placeholder="Your Email" class="border p-2" required>
-
-                <select name="facilityName" id="facilitySelect" class="border p-2" required>
-                    <option value="">Select Facility</option>
-                    ${facilityOptions}
-                </select>
-
-                <select name="hospitalName" id="hospitalSelect" class="border p-2" required>
-                    <option value="">Select Hospital</option>
-                </select>
-
-                <select name="doctorName" id="doctorSelect" class="border p-2" required>
-                    <option value="">Select Doctor</option>
-                </select>
-
-                <input type="datetime-local" name="localDateTime" class="border p-2" required>
-
-                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
-            </form>
-        `);
-
-        // Facility change -> fetch hospitals
-        document.getElementById('facilitySelect').addEventListener('change', async (e) => {
-            const facilityName = e.target.value;
-            if (!facilityName) return;
-            try {
-                const res = await fetch(`/hospital/allHospitalByFacilityName?facilityName=${encodeURIComponent(facilityName)}`);
-                if (!res.ok) throw new Error(await res.text());
-                const hospitals = await res.json();
-                const hospitalSelect = document.getElementById('hospitalSelect');
-                hospitalSelect.innerHTML = `<option value="">Select Hospital</option>` + hospitals.map(h => `<option value="${h}">${h}</option>`).join('');
-                document.getElementById('doctorSelect').innerHTML = `<option value="">Select Doctor</option>`;
-            } catch (err) {
-                showToast(err.message, 'error');
-            }
-        });
-
-        // Hospital change -> fetch doctors
-        document.getElementById('hospitalSelect').addEventListener('change', async (e) => {
-            const hospitalName = e.target.value;
-            const facilityName = document.getElementById('facilitySelect').value;
-            if (!hospitalName || !facilityName) return;
-            try {
-                const res = await fetch(`/doctor/allDoctorByFacilityAndHospital?hospitalName=${encodeURIComponent(hospitalName)}&facilityName=${encodeURIComponent(facilityName)}`);
-                if (!res.ok) throw new Error(await res.text());
-                const doctors = await res.json();
-                document.getElementById('doctorSelect').innerHTML = `<option value="">Select Doctor</option>` + doctors.map(d => `<option value="${d}">${d}</option>`).join('');
-            } catch (err) {
-                showToast(err.message, 'error');
-            }
-        });
-    }
-
-    async function submitAppointment(event) {
-        event.preventDefault();
-        const form = event.target;
-        const data = Object.fromEntries(new FormData(form).entries());
-
-        try {
-            const res = await fetch('/appointment/registerAppointment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const text = await res.text();
-            if (res.ok) {
-                showToast(text, 'success');
-                form.reset();
-                // Auto-close modal after 1.5 seconds
-                setTimeout(() => closeModal(), 1500);
-            } else {
-                showToast(text, 'error');
-            }
-        } catch (err) {
-            showToast(err.message, 'error');
-        }
-    }
-
-    // --- My Appointments ---
-    async function showMyAppointments() {
-        const email = prompt("Enter your email to see appointments");
-        if (!email) return;
-        try {
-            const res = await fetch(`/appointment/MyAppointment?email=${encodeURIComponent(email)}`);
-            if (!res.ok) throw new Error(await res.text());
-            const appointments = await res.json();
-            let content = '<ul class="space-y-2">';
-            appointments.forEach(a => {
-                content += `<li class="bg-white p-3 rounded shadow">
-                    <strong>Doctor:</strong> ${a.doctorName}<br>
-                    <strong>Hospital:</strong> ${a.hospitalName}<br>
-                    <strong>Status:</strong> ${a.status}<br>
-                    <strong>Applied On:</strong> ${new Date(a.appointmentAppliedDate).toLocaleString()}
-                </li>`;
-            });
-            content += '</ul>';
-            showModal('My Appointments', content);
-        } catch (err) {
-            showToast(err.message, 'error');
-        }
-    }
-
-    // More Details
-    async function getDoctorDetail(name) {
+    /* ---------------------
+       Prefetch lists for datalists
+       --------------------- */
+    async function loadDoctorNameList() {
       try {
-        const res = await fetch(`/doctor/getDoctorDetails?doctorName=${encodeURIComponent(name)}`);
+        const res = await fetch('/doctor/allDoctorList');
+        if (!res.ok) throw new Error(await res.text());
+        const list = await res.json();
+        doctorNameList = Array.isArray(list) ? list.map(x => String(x)) : [];
+        const datalist = document.getElementById('doctorDatalist');
+        datalist.innerHTML = doctorNameList.map(n => `<option value="${escapeHtml(n)}">`).join('');
+      } catch (err) {
+        doctorNameList = [];
+        console.warn('Could not load doctor list:', err.message);
+      }
+    }
+    async function loadHospitalNameList() {
+      try {
+        const res = await fetch('/hospital/allHospitalList');
+        if (!res.ok) throw new Error(await res.text());
+        const list = await res.json();
+        hospitalNameList = Array.isArray(list) ? list.map(x => String(x)) : [];
+        const datalist = document.getElementById('hospitalDatalist');
+        datalist.innerHTML = hospitalNameList.map(n => `<option value="${escapeHtml(n)}">`).join('');
+      } catch (err) {
+        hospitalNameList = [];
+        console.warn('Could not load hospital list:', err.message);
+      }
+    }
+
+    /* ---------------------
+       Doctor search behavior
+       --------------------- */
+    async function onDoctorSearchSelected(e) {
+      const val = (e.target.value || '').trim();
+      if (!val) return;
+      await fetchAndShowDoctorDetails(val);
+    }
+    async function onDoctorSearchEnter(e) {
+      e.preventDefault();
+      const val = (e.target.value || '').trim();
+      if (!val) return;
+      await fetchAndShowDoctorDetails(val);
+    }
+    async function fetchAndShowDoctorDetails(doctorName) {
+      try {
+        const res = await fetch(`/doctor/getDoctorDetails?doctorName=${encodeURIComponent(doctorName)}`);
         if (!res.ok) throw new Error(await res.text());
         const doc = await res.json();
-        showModal("Doctor Details", `
-          <p><b>Name:</b> ${doc.doctorName}</p>
-          <p><b>Age:</b> ${doc.doctorAge}</p>
-          <p><b>Gender:</b> ${doc.doctorGender}</p>
-          <p><b>Experience:</b> ${doc.doctorYearsOfExperience} yrs</p>
-          <p><b>Rating:</b> ⭐ ${doc.doctorRating}</p>
-          <p><b>Graduate College:</b> ${doc.doctorGraduateCollege}</p>
-          <p><b>Expertise:</b> ${doc.doctorFieldOfExpertise}</p>
-          <p><b>Type:</b> ${doc.doctorType}</p>
+        showModal('Doctor Details', `
+          <p><b>Name:</b> ${escapeHtml(doc.doctorName)}</p>
+          <p><b>Age:</b> ${escapeHtml(doc.doctorAge)}</p>
+          <p><b>Gender:</b> ${escapeHtml(doc.doctorGender)}</p>
+          <p><b>Email:</b> ${escapeHtml(doc.doctorEmail || '')}</p>
+          <p><b>Experience:</b> ${escapeHtml(doc.doctorYearsOfExperience)}</p>
+          <p><b>Rating:</b> ⭐ ${escapeHtml(doc.doctorRating)}</p>
+          <p><b>Graduate College:</b> ${escapeHtml(doc.doctorGraduateCollege || '')}</p>
+          <p><b>Expertise:</b> ${escapeHtml(doc.doctorFieldOfExpertise || '')}</p>
+          <p><b>Type:</b> ${escapeHtml(doc.doctorType || '')}</p>
+          <div class="mt-4">
+            <button class="bg-green-600 text-white px-3 py-1 rounded" onclick="openBookAppointmentDoctor('${escapeHtml(doc.doctorName)}','${escapeHtml(doc.doctorEmail || '')}')">Book Appointment</button>
+          </div>
         `);
       } catch (err) {
-        showModal("Error", err.message, true);
+        showToast(err.message, 'error');
       }
     }
 
-    async function getHospitalDetail(name) {
+    /* ---------------------
+       Hospital search behavior
+       --------------------- */
+    async function onHospitalSearchSelected(e) {
+      const val = (e.target.value || '').trim();
+      if (!val) return;
+      await fetchAndShowHospitalDetails(val);
+    }
+    async function onHospitalSearchEnter(e) {
+      e.preventDefault();
+      const val = (e.target.value || '').trim();
+      if (!val) return;
+      await fetchAndShowHospitalDetails(val);
+    }
+    async function fetchAndShowHospitalDetails(hospitalName) {
       try {
-        const res = await fetch(`/hospital/findIndividualHospitalDetail?hospitalName=${encodeURIComponent(name)}`);
+        const res = await fetch(`/hospital/findIndividualHospitalDetail?hospitalName=${encodeURIComponent(hospitalName)}`);
         if (!res.ok) throw new Error(await res.text());
         const hos = await res.json();
-        showModal("Hospital Details", `
-          <p><b>Name:</b> ${hos.hospitalName}</p>
-          <p><b>Type:</b> ${hos.hospitalType}</p>
-          <p><b>Established:</b> ${hos.hospitalYearOfEstablishment}</p>
-          <p><b>Users Served:</b> ${hos.hospitalNumOfUsersServed}</p>
-          <p><b>Rating:</b> ⭐ ${hos.hospitalRating}</p>
-          <p><b>Contact:</b> ${hos.hospitalContact}</p>
-          <p><b>Address:</b> ${hos.hospitalAddress}</p>
+        showModal('Hospital Details', `
+          <p><b>Name:</b> ${escapeHtml(hos.hospitalName)}</p>
+          <p><b>Type:</b> ${escapeHtml(hos.hospitalType)}</p>
+          <p><b>Established:</b> ${escapeHtml(hos.hospitalYearOfEstablishment)}</p>
+          <p><b>Users Served:</b> ${escapeHtml(hos.hospitalNumOfUsersServed)}</p>
+          <p><b>Rating:</b> ⭐ ${escapeHtml(hos.hospitalRating)}</p>
+          <p><b>Contact:</b> ${escapeHtml(hos.hospitalContact || '')}</p>
+          <p><b>Address:</b> ${escapeHtml(hos.hospitalAddress || '')}</p>
+          <div class="mt-4">
+            <button class="bg-green-600 text-white px-3 py-1 rounded" onclick="openBookAppointmentHospital('${escapeHtml(hos.hospitalName)}')">Book Appointment</button>
+          </div>
         `);
       } catch (err) {
-        showModal("Error", err.message, true);
+        showToast(err.message, 'error');
       }
     }
 
-    // Main modal handler
-    function openModal(type) {
-      const title = document.getElementById("modalTitle");
-      const content = document.getElementById("modalContent");
-      const msgEl = document.getElementById("modalMsg");
-      msgEl.classList.add("hidden"); msgEl.innerText = "";
+    /* ---------------------
+       Doctor & Hospital detail fetchers used by cards
+       --------------------- */
+    async function getDoctorDetail(encodedName) {
+      const name = decodeURIComponent(encodedName || '');
+      await fetchAndShowDoctorDetails(name);
+    }
+    async function getHospitalDetail(encodedName) {
+      const name = decodeURIComponent(encodedName || '');
+      await fetchAndShowHospitalDetails(name);
+    }
 
-      if (type === "contactUs") {
-        title.innerText = "Contact Us";
-        content.innerHTML = `
+    /* ---------------------
+       Booking flows (left-side, doctor-card, hospital-card)
+       --------------------- */
+    function openBookAppointment() {
+      const content = `
+        <form id="appointmentFormAll" class="grid gap-2">
+          <label>Your Email</label>
+          <input name="appUserEmail" id="appUserEmailAll" placeholder="Your email" class="border p-2 w-full" required>
+
+          <label>Facility</label>
+          <select name="facilityName" id="facilitySelectAll" class="border p-2 w-full" required>
+            <option value="">Select Facility</option>
+          </select>
+
+          <label>Hospital</label>
+          <select name="hospitalName" id="hospitalSelectAll" class="border p-2 w-full" required>
+            <option value="">Select Hospital</option>
+          </select>
+
+          <label>Doctor</label>
+          <select name="doctorName" id="doctorSelectAll" class="border p-2 w-full" required>
+            <option value="">Select Doctor</option>
+          </select>
+
+          <label>Date & Time</label>
+          <input type="datetime-local" name="localDateTime" id="localDateTimeAll" class="border p-2 w-full" required>
+
+          <button type="button" id="submitAppointmentAll" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+        </form>`;
+      showModal('Book Appointment', content);
+
+      (async () => {
+        try {
+          const res = await fetch('/facility/allFacilities');
+          if (!res.ok) throw new Error(await res.text());
+          const facilities = await res.json();
+          document.getElementById('facilitySelectAll').innerHTML =
+            '<option value="">Select Facility</option>' + toOptionsSmall(facilities);
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      })();
+
+      document.getElementById('facilitySelectAll').onchange = async function (e) {
+        const facility = e.target.value;
+        if (!facility) {
+          document.getElementById('hospitalSelectAll').innerHTML = '<option value="">Select Hospital</option>';
+          document.getElementById('doctorSelectAll').innerHTML = '<option value="">Select Doctor</option>';
+          return;
+        }
+        try {
+          const res = await fetch(`/hospital/allHospitalByFacilityName?facilityName=${encodeURIComponent(facility)}`);
+          if (!res.ok) throw new Error(await res.text());
+          const hospitals = await res.json();
+          document.getElementById('hospitalSelectAll').innerHTML =
+            '<option value="">Select Hospital</option>' + toOptionsSmall(hospitals, {valueKeys:['hospitalName','id','name'], labelKeys:['hospitalName','name']});
+          document.getElementById('doctorSelectAll').innerHTML = '<option value="">Select Doctor</option>';
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      };
+
+      document.getElementById('hospitalSelectAll').onchange = async function (e) {
+        const hospital = e.target.value;
+        const facility = document.getElementById('facilitySelectAll').value;
+        if (!hospital || !facility) {
+          document.getElementById('doctorSelectAll').innerHTML = '<option value="">Select Doctor</option>';
+          return;
+        }
+        try {
+          const res = await fetch(`/doctor/allDoctorByFacilityAndHospital?hospitalName=${encodeURIComponent(hospital)}&facilityName=${encodeURIComponent(facility)}`);
+          if (!res.ok) throw new Error(await res.text());
+          const doctors = await res.json();
+          document.getElementById('doctorSelectAll').innerHTML =
+            '<option value="">Select Doctor</option>' + toOptionsSmall(doctors, {valueKeys:['doctorName','id','name'], labelKeys:['doctorName','name']});
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      };
+
+      document.getElementById('submitAppointmentAll').onclick = async function () {
+        const form = document.getElementById('appointmentFormAll');
+        const raw = Object.fromEntries(new FormData(form).entries());
+        await submitAppointmentData(raw);
+      };
+    }
+
+    function openBookAppointmentDoctor(doctorName, doctorEmail) {
+      const content = `
+        <form id="appointmentFormDoctor" class="grid gap-2">
+          <label>Doctor Name</label>
+          <input name="doctorName" id="doctorNameInputDoc" value="${escapeHtml(doctorName)}" class="border p-2 w-full bg-gray-100" readonly>
+          <input type="hidden" name="__doctorEmailHelper" id="doctorEmailInputDoc" value="${escapeHtml(doctorEmail)}">
+
+          <label>Your Email</label>
+          <input name="appUserEmail" id="appUserEmailDoc" placeholder="Your email" class="border p-2 w-full" required>
+
+          <label>Facility</label>
+          <select name="facilityName" id="facilitySelectDoc" class="border p-2 w-full" required>
+            <option value="">Select Facility</option>
+          </select>
+
+          <label>Hospital</label>
+          <select name="hospitalName" id="hospitalSelectDoc" class="border p-2 w-full" required>
+            <option value="">Select Hospital</option>
+          </select>
+
+          <label>Date & Time</label>
+          <input type="datetime-local" name="localDateTime" id="localDateTimeDoc" class="border p-2 w-full" required>
+
+          <button type="button" id="submitAppointmentDoc" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+        </form>`;
+      showModal('Book Appointment', content);
+
+      (async () => {
+        try {
+          const email = document.getElementById('doctorEmailInputDoc').value;
+          const res = await fetch(`/facility/facilityByDoctorName?doctorEmail=${encodeURIComponent(email)}`);
+          if (!res.ok) throw new Error(await res.text());
+          const facilities = await res.json();
+          document.getElementById('facilitySelectDoc').innerHTML =
+            '<option value="">Select Facility</option>' + toOptionsSmall(facilities);
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      })();
+
+      document.getElementById('facilitySelectDoc').onchange = async function (e) {
+        const facilityName = e.target.value;
+        if (!facilityName) {
+          document.getElementById('hospitalSelectDoc').innerHTML = '<option value="">Select Hospital</option>';
+          return;
+        }
+        try {
+          const email = document.getElementById('doctorEmailInputDoc').value;
+          const res = await fetch(`/hospital/allHospitalByFacilityNameAndDoctorEmail?facilityName=${encodeURIComponent(facilityName)}&doctorEmail=${encodeURIComponent(email)}`);
+          if (!res.ok) throw new Error(await res.text());
+          const hospitals = await res.json();
+          document.getElementById('hospitalSelectDoc').innerHTML =
+            '<option value="">Select Hospital</option>' + toOptionsSmall(hospitals, {valueKeys:['hospitalName','id','name'], labelKeys:['hospitalName','name']});
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      };
+
+      document.getElementById('submitAppointmentDoc').onclick = async function () {
+        const form = document.getElementById('appointmentFormDoctor');
+        const raw = Object.fromEntries(new FormData(form).entries());
+        raw.doctorName = document.getElementById('doctorNameInputDoc').value;
+        await submitAppointmentData(raw);
+      };
+    }
+
+    function openBookAppointmentHospital(hospitalName) {
+      const content = `
+        <form id="appointmentFormHospital" class="grid gap-2">
+          <label>Hospital Name</label>
+          <input name="hospitalName" id="hospitalNameInputHos" value="${escapeHtml(hospitalName)}" class="border p-2 w-full bg-gray-100" readonly>
+
+          <label>Your Email</label>
+          <input name="appUserEmail" id="appUserEmailHos" placeholder="Your email" class="border p-2 w-full" required>
+
+          <label>Facility</label>
+          <select name="facilityName" id="facilitySelectHos" class="border p-2 w-full" required>
+            <option value="">Select Facility</option>
+          </select>
+
+          <label>Doctor</label>
+          <select name="doctorName" id="doctorSelectHos" class="border p-2 w-full" required>
+            <option value="">Select Doctor</option>
+          </select>
+
+          <label>Date & Time</label>
+          <input type="datetime-local" name="localDateTime" id="localDateTimeHos" class="border p-2 w-full" required>
+
+          <button type="button" id="submitAppointmentHos" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+        </form>`;
+      showModal('Book Appointment', content);
+
+      (async () => {
+        try {
+          const res = await fetch(`/facility/allFacilityByHospitalName?hospitalName=${encodeURIComponent(hospitalName)}`);
+          if (!res.ok) throw new Error(await res.text());
+          const facilities = await res.json();
+          document.getElementById('facilitySelectHos').innerHTML =
+            '<option value="">Select Facility</option>' + toOptionsSmall(facilities);
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      })();
+
+      document.getElementById('facilitySelectHos').onchange = async function (e) {
+        const facilityName = e.target.value;
+        if (!facilityName) {
+          document.getElementById('doctorSelectHos').innerHTML = '<option value="">Select Doctor</option>';
+          return;
+        }
+        try {
+          const res = await fetch(`/doctor/allDoctorByFacilityAndHospital?hospitalName=${encodeURIComponent(hospitalName)}&facilityName=${encodeURIComponent(facilityName)}`);
+          if (!res.ok) throw new Error(await res.text());
+          const doctors = await res.json();
+          document.getElementById('doctorSelectHos').innerHTML =
+            '<option value="">Select Doctor</option>' + toOptionsSmall(doctors, {valueKeys:['doctorName','id','name'], labelKeys:['doctorName','name']});
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      };
+
+      document.getElementById('submitAppointmentHos').onclick = async function () {
+        const form = document.getElementById('appointmentFormHospital');
+        const raw = Object.fromEntries(new FormData(form).entries());
+        await submitAppointmentData(raw);
+      };
+    }
+
+    /* ---------------------
+       Submit appointment DTO (strict)
+       --------------------- */
+    async function submitAppointmentData(rawData) {
+      try {
+        const payload = {
+          appUserEmail: rawData.appUserEmail || '',
+          facilityName: rawData.facilityName || '',
+          hospitalName: rawData.hospitalName || '',
+          doctorName: rawData.doctorName || '',
+          localDateTime: rawData.localDateTime || ''
+        };
+        if (!payload.appUserEmail) { showToast('Please enter your email', 'error'); return; }
+        if (!payload.localDateTime) { showToast('Please choose appointment date & time', 'error'); return; }
+
+        const res = await fetch('/appointment/registerAppointment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        if (res.ok) {
+          showToast(text || 'Appointment registered', 'success');
+          closeModal();
+        } else {
+          showToast(text || 'Error registering appointment', 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    /* ---------------------
+       My Appointments (unchanged)
+       --------------------- */
+    async function showMyAppointments() {
+      const email = prompt('Enter your email to see appointments');
+      if (!email) return;
+      try {
+        const res = await fetch(`/appointment/MyAppointment?email=${encodeURIComponent(email)}`);
+        if (!res.ok) throw new Error(await res.text());
+        const appointments = await res.json();
+        let content = '<ul class="space-y-2">';
+        (appointments || []).forEach(a => {
+          content += `<li class="bg-white p-3 rounded shadow"><strong>Doctor:</strong> ${escapeHtml(a.doctorName)}<br><strong>Hospital:</strong> ${escapeHtml(a.hospitalName)}<br><strong>Status:</strong> ${escapeHtml(a.status)}<br><strong>Applied On:</strong> ${new Date(a.appointmentAppliedDate).toLocaleString()}</li>`;
+        });
+        content += '</ul>';
+        showModal('My Appointments', content);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    /* ---------------------
+       Contact / Registration / Review flows (full implementations restored)
+       --------------------- */
+    function openModal(type) {
+      document.getElementById('modalMsg').classList.add('hidden');
+      if (type === 'contactUs') {
+        showModal('Contact Us', `
           <div class="grid gap-3">
             <button onclick="openDoctorReg()" class="bg-blue-600 text-white px-4 py-2 rounded">Doctor Registration Request</button>
             <button onclick="showSimpleForm('/contactUs/doctorRemovalRequest','Doctor Removal Request','doctorEmail')" class="bg-blue-600 text-white px-4 py-2 rounded">Doctor Removal Request</button>
             <button onclick="openHospitalReg()" class="bg-blue-600 text-white px-4 py-2 rounded">Hospital Registration Request</button>
             <button onclick="showSimpleForm('/contactUs/hospitalRemovalRequest','Hospital Removal Request','hospitalName')" class="bg-blue-600 text-white px-4 py-2 rounded">Hospital Removal Request</button>
             <button onclick="showModal('Developer Message','Coming Soon')" class="bg-blue-600 text-white px-4 py-2 rounded">Contact Developer</button>
-          </div>`;
-      }
-
-      if (type === "rateService") {
-        title.innerText = "Rate Our Service";
-        content.innerHTML = `
+          </div>`);
+      } else if (type === 'rateService') {
+        showModal('Rate Our Service', `
           <div class="grid gap-3">
             <button onclick="openHospitalReview()" class="bg-green-600 text-white px-4 py-2 rounded">Rate Hospital</button>
             <button onclick="openDoctorReview()" class="bg-green-600 text-white px-4 py-2 rounded">Rate Doctor</button>
             <button onclick="openGlobalReview()" class="bg-green-600 text-white px-4 py-2 rounded">Overall Experience</button>
-          </div>`;
+          </div>`);
       }
-      document.getElementById("modal").classList.remove("hidden");
     }
 
-    // Doctor Registration
+    // Doctor registration
     async function openDoctorReg() {
-      let hospitalOptions = "";
+      let hospitalOptions = '';
       try {
-        const res = await fetch("/hospital/allHospitalList");
+        const res = await fetch('/hospital/allHospitalList');
         if (res.ok) {
           const hospitals = await res.json();
-          hospitalOptions = hospitals.map(h => `<option value="${h}">${h}</option>`).join("");
+          hospitalOptions = toOptions(hospitals, { valueKeys:['name','hospitalName','id'], labelKeys:['hospitalName','name'] });
         }
-      } catch {}
-      showModal("Doctor Registration", `
-        <form onsubmit="submitDoctorReg(event)" class="grid gap-2">
+      } catch (err) {}
+      showModal('Doctor Registration', `
+        <form id="doctorRegForm" class="grid gap-2">
           <input name="doctorName" placeholder="Doctor Name" class="border p-2" required>
           <input type="number" name="doctorAge" placeholder="Age" class="border p-2" required>
           <input name="doctorGender" placeholder="Gender" class="border p-2" required>
@@ -423,35 +691,42 @@
           </select>
           <select name="hospitalAppliedFor" class="border p-2" required>
             <option value="">Select Hospital</option>
-            ${hospitalOptions}
+            ${''}
           </select>
           <input name="countryName" placeholder="Country" class="border p-2" required>
           <input name="stateName" placeholder="State" class="border p-2" required>
           <input name="facilityNames" placeholder="Facilities (comma separated)" class="border p-2">
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+          <button type="button" onclick="submitDoctorReg()" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
         </form>`);
+      try {
+        const res = await fetch('/hospital/allHospitalList');
+        if (res.ok) {
+          const hospitals = await res.json();
+          const sel = document.querySelector('#doctorRegForm select[name="hospitalAppliedFor"]');
+          if (sel) sel.innerHTML = '<option value="">Select Hospital</option>' + toOptions(hospitals, { valueKeys:['name','hospitalName','id'], labelKeys:['hospitalName','name'] });
+        }
+      } catch (err) {}
+    }
+    async function submitDoctorReg() {
+      try {
+        const form = document.getElementById('doctorRegForm');
+        const data = Object.fromEntries(new FormData(form).entries());
+        data.facilityNames = data.facilityNames ? data.facilityNames.split(',').map(s => s.trim()) : [];
+        const res = await fetch('/contactUs/doctorRegistrationRequest', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        });
+        const text = await res.text();
+        const msgEl = document.getElementById('modalMsg');
+        msgEl.innerText = text; msgEl.classList.remove('hidden'); msgEl.className = res.ok ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
     }
 
-    async function submitDoctorReg(event) {
-      event.preventDefault();
-      const form = event.target;
-      const data = Object.fromEntries(new FormData(form).entries());
-      data.facilityNames = data.facilityNames ? data.facilityNames.split(",").map(f => f.trim()) : [];
-      const res = await fetch("/contactUs/doctorRegistrationRequest", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      const msgEl = document.getElementById("modalMsg");
-      const text = await res.text();
-      msgEl.innerText = text;
-      msgEl.classList.remove("hidden");
-      msgEl.className = res.ok ? "text-green-600 font-semibold" : "text-red-600 font-semibold";
-    }
-
-    // Hospital Registration
+    // Hospital registration
     function openHospitalReg() {
-      showModal("Hospital Registration", `
-        <form onsubmit="submitHospitalReg(event)" class="grid gap-2">
+      showModal('Hospital Registration', `
+        <form id="hospitalRegForm" class="grid gap-2">
           <input name="hospitalName" placeholder="Hospital Name" class="border p-2" required>
           <input name="hospitalType" placeholder="Hospital Type" class="border p-2" required>
           <input type="number" name="hospitalYearOfEstablishment" placeholder="Year of Establishment" class="border p-2" required>
@@ -461,126 +736,107 @@
           <input name="countryName" placeholder="Country" class="border p-2" required>
           <input name="stateName" placeholder="State" class="border p-2" required>
           <input name="facilities" placeholder="Facilities (comma separated)" class="border p-2">
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+          <button type="button" onclick="submitHospitalReg()" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
         </form>`);
     }
-
-    async function submitHospitalReg(event) {
-      event.preventDefault();
-      const form = event.target;
-      const data = Object.fromEntries(new FormData(form).entries());
-      data.facilities = data.facilities ? data.facilities.split(",").map(f => f.trim()) : [];
-      const res = await fetch("/contactUs/hospitalRegistrationRequest", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      const msgEl = document.getElementById("modalMsg");
-      const text = await res.text();
-      msgEl.innerText = text;
-      msgEl.classList.remove("hidden");
-      msgEl.className = res.ok ? "text-green-600 font-semibold" : "text-red-600 font-semibold";
-    }
-
-    // Rate Our Service
-    async function openHospitalReview() {
-      let hospitalOptions = "";
+    async function submitHospitalReg() {
       try {
-        const res = await fetch("/hospital/allHospitalList");
-        if (res.ok) {
-          const hospitals = await res.json();
-          hospitalOptions = hospitals.map(h => `<option value="${h}">${h}</option>`).join("");
-        }
-      } catch {}
-      showModal("Rate Hospital", `
-          <form onsubmit="submitReview(event,'/hospital/addReview')" class="grid gap-2">
-            <input name="appUserEmail" placeholder="Your Email" class="border p-2" required>
-            <select name="hospitalName" class="border p-2" required>${hospitalOptions}</select>
-            <input type="number" step="0.1" max="5" name="hospitalRating" placeholder="Rating (0-5)" class="border p-2" required>
-            <textarea name="comments" placeholder="Comments" class="border p-2" required></textarea>
-            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
-          </form>
-        `);
+        const form = document.getElementById('hospitalRegForm');
+        const data = Object.fromEntries(new FormData(form).entries());
+        data.facilities = data.facilities ? data.facilities.split(',').map(s => s.trim()) : [];
+        const res = await fetch('/contactUs/hospitalRegistrationRequest', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        });
+        const text = await res.text();
+        const msgEl = document.getElementById('modalMsg');
+        msgEl.innerText = text; msgEl.classList.remove('hidden'); msgEl.className = res.ok ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
     }
 
-    async function openDoctorReview() {
-      let doctorOptions = "";
-      try {
-        const res = await fetch("/doctor/allDoctorList");
-        if (res.ok) {
-          const doctors = await res.json();
-          doctorOptions = doctors.map(d => `<option value="${d}">${d}</option>`).join("");
-        }
-      } catch {}
-      showModal("Rate Doctor", `
-      <form onsubmit="submitReview(event,'/doctor/addReview')" class="grid gap-2">
-        <input name="userEmail" placeholder="Your Email" class="border p-2" required>
-        <select name="doctorName" class="border p-2" required>${doctorOptions}</select>
-        <input type="number" step="0.1" max="5" name="doctorRatting" placeholder="Rating (0-5)" class="border p-2" required>
-        <textarea name="comment" placeholder="Comment" class="border p-2" required></textarea>
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
-      </form>
-    `);
-    }
-
-    function openGlobalReview() {
-      showModal("Overall Experience", `
-          <form onsubmit="submitReview(event,'/globalReview/register')" class="grid gap-2">
-            <input name="userEmail" placeholder="Your Email" class="border p-2" required>
-            <input type="number" step="0.1" max="5" name="rating" placeholder="Rating (0-5)" class="border p-2" required>
-            <textarea name="comments" placeholder="Comments" class="border p-2" required></textarea>
-            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
-          </form>
-        `);
-    }
-
-    async function submitReview(event, url) {
-      event.preventDefault();
-      const form = event.target;
-      const data = Object.fromEntries(new FormData(form).entries());
-      const res = await fetch(url, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      const msgEl = document.getElementById("modalMsg");
-      const text = await res.text();
-      msgEl.innerText = text;
-      msgEl.classList.remove("hidden");
-      msgEl.className = res.ok ? "text-green-600 font-semibold" : "text-red-600 font-semibold";
-    }
-
-    // Helpers
-    function showModal(title, content, isError = false) {
-      document.getElementById("modalTitle").innerText = title;
-      document.getElementById("modalContent").innerHTML = content;
-      const msgEl = document.getElementById("modalMsg");
-      msgEl.classList.add("hidden");
-      msgEl.innerText = "";
-      document.getElementById("modal").classList.remove("hidden");
-    }
-    function closeModal() {
-      document.getElementById("modal").classList.add("hidden");
-    }
+    // Simple removal form
     function showSimpleForm(url, title, field) {
       showModal(title, `
-        <form onsubmit="submitSimple(event,'${url}')" class="grid gap-2">
+        <form id="simpleForm" class="grid gap-2">
           <input name="${field}" placeholder="${field}" class="border p-2" required>
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+          <button type="button" onclick="submitSimple('${url}')" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
         </form>`);
     }
-    async function submitSimple(event, url) {
-      event.preventDefault();
-      const form = event.target;
-      const data = Object.fromEntries(new FormData(form).entries());
-      const res = await fetch(url, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      const msgEl = document.getElementById("modalMsg");
-      const text = await res.text();
-      msgEl.innerText = text;
-      msgEl.classList.remove("hidden");
-      msgEl.className = res.ok ? "text-green-600 font-semibold" : "text-red-600 font-semibold";
+    async function submitSimple(url) {
+      try {
+        const form = document.getElementById('simpleForm');
+        const data = Object.fromEntries(new FormData(form).entries());
+        const res = await fetch(url, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        });
+        const text = await res.text();
+        const msgEl = document.getElementById('modalMsg');
+        msgEl.innerText = text; msgEl.classList.remove('hidden'); msgEl.className = res.ok ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
     }
+
+    // Reviews
+    async function openHospitalReview() {
+      let hospitalOptions = '';
+      try {
+        const res = await fetch('/hospital/allHospitalList');
+        if (res.ok) {
+          const hospitals = await res.json();
+          hospitalOptions = toOptions(hospitals, { valueKeys:['hospitalName','id','name'], labelKeys:['hospitalName','name'] });
+        }
+      } catch (err) {}
+      showModal('Rate Hospital', `
+        <form id="hospitalReviewForm" class="grid gap-2">
+          <input name="appUserEmail" placeholder="Your Email" class="border p-2" required>
+          <select name="hospitalName" class="border p-2" required>${hospitalOptions}</select>
+          <input type="number" step="0.1" max="5" name="hospitalRating" placeholder="Rating (0-5)" class="border p-2" required>
+          <textarea name="comments" placeholder="Comments" class="border p-2" required></textarea>
+          <button type="button" onclick="submitReview('/hospital/addReview','hospitalReviewForm')" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+        </form>`);
+    }
+    async function openDoctorReview() {
+      let doctorOptions = '';
+      try {
+        const res = await fetch('/doctor/allDoctorList');
+        if (res.ok) {
+          const doctors = await res.json();
+          doctorOptions = toOptions(doctors, { valueKeys:['doctorName','id','name'], labelKeys:['doctorName','name'] });
+        }
+      } catch (err) {}
+      showModal('Rate Doctor', `
+        <form id="doctorReviewForm" class="grid gap-2">
+          <input name="userEmail" placeholder="Your Email" class="border p-2" required>
+          <select name="doctorName" class="border p-2" required>${doctorOptions}</select>
+          <input type="number" step="0.1" max="5" name="doctorRatting" placeholder="Rating (0-5)" class="border p-2" required>
+          <textarea name="comment" placeholder="Comment" class="border p-2" required></textarea>
+          <button type="button" onclick="submitReview('/doctor/addReview','doctorReviewForm')" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+        </form>`);
+    }
+    function openGlobalReview() {
+      showModal('Overall Experience', `
+        <form id="globalReviewForm" class="grid gap-2">
+          <input name="userEmail" placeholder="Your Email" class="border p-2" required>
+          <input type="number" step="0.1" max="5" name="rating" placeholder="Rating (0-5)" class="border p-2" required>
+          <textarea name="comments" placeholder="Comments" class="border p-2" required></textarea>
+          <button type="button" onclick="submitReview('/globalReview/register','globalReviewForm')" class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+        </form>`);
+    }
+    async function submitReview(url, formId) {
+      try {
+        const form = document.getElementById(formId);
+        const data = Object.fromEntries(new FormData(form).entries());
+        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const text = await res.text();
+        const msgEl = document.getElementById('modalMsg');
+        msgEl.innerText = text; msgEl.classList.remove('hidden'); msgEl.className = res.ok ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
 </script>
 </body>
 </html>

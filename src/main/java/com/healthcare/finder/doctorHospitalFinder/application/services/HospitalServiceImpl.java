@@ -169,4 +169,13 @@ public class HospitalServiceImpl implements HospitalService {
         }
         return hospitalList;
     }
+
+    @Override
+    public List<String> findHospitalByFacilityNameAndDoctorEmail(String facilityName, String doctorEmail) throws HospitalException {
+        List<String> hospitalList = hospitalRepo.getHospitalByFacilityNameAndDoctorEmail(facilityName,doctorEmail);
+        if(hospitalList.isEmpty()){
+            throw new HospitalException("Currently No doctor is providing in "+facilityName+" facility!",HttpStatus.NOT_FOUND);
+        }
+        return hospitalList;
+    }
 }

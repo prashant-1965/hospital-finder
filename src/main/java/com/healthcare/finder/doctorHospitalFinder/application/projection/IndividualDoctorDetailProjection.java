@@ -9,6 +9,7 @@ public class IndividualDoctorDetailProjection {
     private String doctorName;
     private int doctorAge;
     private String doctorGender;
+    private String doctorEmail;
     private int doctorYearsOfExperience;
     private double doctorRating;
     private String doctorGraduateCollege;
