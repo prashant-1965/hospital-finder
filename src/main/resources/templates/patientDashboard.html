@@ -25,7 +25,7 @@
         <button onclick="openModal('contactUs')" class="hover:text-blue-600">Contact Us</button>
         <button onclick="openModal('rateService')" class="hover:text-blue-600">Rate Our Service</button>
         <button onclick="showMyAppointments()" class="hover:text-blue-600">My Appointments</button>
-        <button class="hover:text-blue-600">Customise Request</button>
+        <button onclick="openCustomizeModal()" class="hover:text-blue-600">Customise Request</button>
     </div>
     <div class="flex items-center space-x-4">
         <div class="flex items-center space-x-2">
@@ -56,8 +56,6 @@
         </div>
 
         <ul class="space-y-4">
-<!--            <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Find Doctors</button></li>-->
-<!--            <li><button class="w-full text-left px-4 py-2 bg-blue-100 rounded">Find Hospitals</button></li>-->
             <li><button onclick="openBookAppointment()" class="w-full text-left px-4 py-2 bg-blue-100 rounded">Book Appointments</button></li>
         </ul>
     </aside>
@@ -97,6 +95,49 @@
         <h3 id="modalTitle" class="text-xl font-semibold mb-4"></h3>
         <div id="modalContent" class="text-gray-700"></div>
         <div id="modalMsg" class="hidden text-center font-semibold mt-2"></div>
+    </div>
+</div>
+
+<!-- Customize Request Modal -->
+<div id="customizeRequestModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-lg w-full max-w-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Customise Request</h2>
+        <form id="customizeRequestForm" class="space-y-4">
+            <!-- Country -->
+            <div>
+                <label class="block mb-1 font-medium">Select Country</label>
+                <select id="countrySelect" name="countryName" class="w-full border rounded p-2">
+                    <option value="">-- Select Country --</option>
+                </select>
+            </div>
+            <!-- State -->
+            <div>
+                <label class="block mb-1 font-medium">Select State</label>
+                <select id="stateSelect" name="stateName" class="w-full border rounded p-2">
+                    <option value="">-- Select State --</option>
+                </select>
+            </div>
+            <!-- Hospital Type -->
+            <div>
+                <label class="block mb-1 font-medium">Hospital Type</label>
+                <select id="hospitalTypeSelect" name="hospitalType" class="w-full border rounded p-2">
+                    <option value="">-- Select Type --</option>
+                </select>
+            </div>
+            <!-- Facility -->
+            <div>
+                <label class="block mb-1 font-medium">Facility</label>
+                <select id="facilitySelect" name="facilityName" class="w-full border rounded p-2">
+                    <option value="">-- Select Facility --</option>
+                </select>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end space-x-2 pt-4">
+                <button type="button" onclick="closeCustomizeModal()" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Cancel</button>
+                <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Submit</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -171,6 +212,67 @@
     function closeModal() {
       document.getElementById('modal').classList.add('hidden');
       document.getElementById('modalContent').innerHTML = '';
+    }
+
+    /* ---------------------
+       Customize Request Modal Functions
+       --------------------- */
+    function openCustomizeModal() {
+      document.getElementById("customizeRequestModal").classList.remove("hidden");
+      loadCountries();
+      loadHospitalTypes();
+      loadFacilities();
+    }
+    function closeCustomizeModal() {
+      document.getElementById("customizeRequestModal").classList.add("hidden");
+    }
+
+    async function loadCountries() {
+      try {
+        const res = await fetch("/country/getCountryList");
+        if (!res.ok) throw new Error("Failed to fetch countries");
+        const data = await res.json();
+        const select = document.getElementById("countrySelect");
+        select.innerHTML = '<option value="">-- Select Country --</option>';
+        data.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.countryName;
+          opt.textContent = c.countryName;
+          select.appendChild(opt);
+        });
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    async function loadHospitalTypes() {
+      try {
+        const res = await fetch("/myCustom/hospitalType");
+        if (!res.ok) throw new Error("Failed to fetch hospital types");
+        const data = await res.json();
+        const select = document.getElementById("hospitalTypeSelect");
+        select.innerHTML = '<option value="">-- Select Type --</option>';
+        data.forEach(type => {
+          const opt = document.createElement("option");
+          opt.value = type;
+          opt.textContent = type;
+          select.appendChild(opt);
+        });
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+
+    async function loadFacilities() {
+      try {
+        const res = await fetch("/facility/allFacilities");
+        if (!res.ok) throw new Error("Failed to fetch facilities");
+        const data = await res.json();
+        const select = document.getElementById("facilitySelect");
+        select.innerHTML = '<option value="">-- Select Facility --</option>';
+        data.forEach(f => {
+          const opt = document.createElement("option");
+          opt.value = f.facilityName;
+          opt.textContent = `${f.facilityName} - ${f.facilityDescription}`;
+          select.appendChild(opt);
+        });
+      } catch (err) { showToast(err.message, 'error'); }
     }
 
     /* ---------------------
@@ -249,10 +351,52 @@
         hospitalInput.addEventListener('change', onHospitalSearchSelected);
         hospitalInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') onHospitalSearchEnter(e); });
 
+        // Setup customize request form event listeners
+        setupCustomizeEventListeners();
+
       } catch (err) {
         alert('Error: ' + err.message);
       }
     });
+
+    function setupCustomizeEventListeners() {
+      // Country change event listener
+      document.getElementById("countrySelect").addEventListener("change", async function() {
+        const countryName = this.value;
+        const select = document.getElementById("stateSelect");
+        select.innerHTML = '<option value="">-- Select State --</option>';
+        if (!countryName) return;
+        try {
+          const res = await fetch(`/myCustom/getStateList?countryName=${encodeURIComponent(countryName)}`);
+          if (!res.ok) throw new Error("Failed to fetch states");
+          const data = await res.json();
+          data.forEach(s => {
+            const opt = document.createElement("option");
+            opt.value = s.stateName;
+            opt.textContent = s.stateName;
+            select.appendChild(opt);
+          });
+        } catch (err) { showToast(err.message, 'error'); }
+      });
+
+      // Form submit event listener
+      document.getElementById("customizeRequestForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+
+        if (!data.countryName || !data.stateName || !data.hospitalType || !data.facilityName) {
+          showToast("All fields are required!", 'error');
+          return;
+        }
+
+        if (data.hospitalType === "Private") {
+          window.location.href = `/redirectPrivateHospital?countryName=${encodeURIComponent(data.countryName)}&stateName=${encodeURIComponent(data.stateName)}&hospitalType=${encodeURIComponent(data.hospitalType)}&facilityName=${encodeURIComponent(data.facilityName)}`;
+        } else {
+          window.location.href = `/redirectGovHospital?countryName=${encodeURIComponent(data.countryName)}&stateName=${encodeURIComponent(data.stateName)}&hospitalType=${encodeURIComponent(data.hospitalType)}&facilityName=${encodeURIComponent(data.facilityName)}`;
+        }
+      });
+    }
 
     /* ---------------------
        Prefetch lists for datalists
@@ -836,7 +980,6 @@
         showToast(err.message, 'error');
       }
     }
-
 </script>
 </body>
 </html>
