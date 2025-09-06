@@ -1,56 +1,375 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Doctor Dashboard</title>
-    <link rel="stylesheet" th:href="@{/style/doctorDashboard.css}">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <style>
+        /* Smooth gradient animation */
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .bg-animated {
+          background: linear-gradient(135deg, #0ea5e9, #8b5cf6, #22c55e, #f43f5e);
+          background-size: 300% 300%;
+          animation: gradientShift 18s ease infinite;
+        }
+        /* Subtle glass border and inner highlight */
+        .glass {
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          box-shadow: 0 10px 30px rgba(2, 6, 23, 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        /* Fancy gradient buttons */
+        .btn-grad {
+          background-image: linear-gradient(135deg, #22c55e, #06b6d4, #3b82f6);
+          background-size: 200% 200%;
+          transition: transform .15s ease, box-shadow .2s ease, background-position .4s ease;
+        }
+        .btn-grad:hover { background-position: 100% 0; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(2,6,23,0.35); }
+
+        .btn-danger {
+          background-image: linear-gradient(135deg, #ef4444, #f97316);
+          background-size: 200% 200%;
+        }
+
+        /* Card hover */
+        .card-hover { transition: transform .18s ease, box-shadow .2s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(2,6,23,0.35); }
+
+        /* Soft scrollbar for lists */
+        .soft-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+        .soft-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 9999px; }
+        .soft-scroll::-webkit-scrollbar-track { background: transparent; }
+
+        /* Skeleton shimmer */
+        .shimmer {
+          position: relative; overflow: hidden; background: rgba(255,255,255,0.12);
+        }
+        .shimmer::after {
+          content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+          animation: shimmer 1.4s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+    </style>
 </head>
-<body>
-<div class="sidebar">
-    <h2>Doctor Panel</h2>
-    <ul>
-        <li><a href="#"><i class="fa fa-home"></i> Dashboard</a></li>
-        <li><a href="#"><i class="fa fa-calendar"></i> Appointments</a></li>
-        <li><a href="#"><i class="fa fa-hospital"></i> Hospitals</a></li>
-        <li><a href="#"><i class="fa fa-user"></i> Profile</a></li>
-    </ul>
+<body class="min-h-screen text-slate-100 bg-animated" x-data="doctorDashboard()" x-init="loadDashboard()">
+<!-- Top Bar -->
+<header class="sticky top-0 z-30">
+    <nav class="glass">
+        <div class="glass w-full">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-white/20 grid place-items-center shadow-inner">
+                        <!-- Simple stethoscope icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                            <path d="M6 2a1 1 0 0 1 1 1v5a5 5 0 1 0 10 0V3a1 1 0 1 1 2 0v5a7 7 0 0 1-6 6.93V18a3 3 0 1 0 6 0 1 1 0 1 1 2 0 5 5 0 1 1-10 0v-3.07A7 7 0 0 1 3 8V3a1 1 0 0 1 1-1 1 1 0 0 1 1 1v5a5 5 0 1 0 10 0V3a1 1 0 1 1 2 0v5a7 7 0 0 1-6 6.93"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight">Doctor Dashboard</h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button @click="loadDashboard()" class="btn-grad px-4 py-2 rounded-xl font-medium shadow text-white">
+                        Refresh
+                    </button>
+                    <div class="glass rounded-xl px-3 py-2 text-sm">
+                        Welcome, <span class="font-semibold" x-text="doctorName || '—' "></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- Content -->
+<main class="max-w-7xl mx-auto p-4 md:p-6">
+    <!-- KPI Row -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="glass card-hover rounded-2xl p-4 text-center">
+            <p class="text-sm opacity-80">Pending</p>
+            <p class="mt-1 text-3xl font-extrabold" x-text="pendingAppointments.length"></p>
+        </div>
+        <div class="glass card-hover rounded-2xl p-4 text-center">
+            <p class="text-sm opacity-80">Upcoming</p>
+            <p class="mt-1 text-3xl font-extrabold" x-text="upcomingAppointments.length"></p>
+        </div>
+        <div class="glass card-hover rounded-2xl p-4 text-center">
+            <p class="text-sm opacity-80">Completed</p>
+            <p class="mt-1 text-3xl font-extrabold" x-text="completedAppointments.length"></p>
+        </div>
+        <div class="glass card-hover rounded-2xl p-4 text-center">
+            <p class="text-sm opacity-80">Canceled</p>
+            <p class="mt-1 text-3xl font-extrabold" x-text="canceledAppointments.length"></p>
+        </div>
+    </section>
+
+    <!-- Lists -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Pending Appointments -->
+        <div class="glass card-hover rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg md:text-xl font-semibold">Pending Appointments</h2>
+                <span class="px-3 py-1 rounded-full text-xs bg-white/10 border border-white/20" x-text="pendingAppointments.length + ' total'"></span>
+            </div>
+            <div class="space-y-3 max-h-[28rem] overflow-auto soft-scroll">
+                <template x-if="isLoading">
+                    <div class="space-y-3">
+                        <div class="rounded-xl h-20 shimmer"></div>
+                        <div class="rounded-xl h-20 shimmer"></div>
+                        <div class="rounded-xl h-20 shimmer"></div>
+                    </div>
+                </template>
+                <template x-if="!isLoading && pendingAppointments.length === 0">
+                    <p class="opacity-80">No pending appointments.</p>
+                </template>
+                <template x-for="appt in pendingAppointments" :key="appt.userEmail + (appt.userExpectedAppointmentDate || '')">
+                    <div class="rounded-xl border border-white/20 bg-white/5 p-4 transition-all hover:bg-white/10">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-semibold" x-text="appt.userName"></p>
+                                <p class="text-sm opacity-80" x-text="appt.userEmail"></p>
+                                <p class="text-sm opacity-80" x-text="'Mobile: ' + (appt.userMobile || '-')"></p>
+                            </div>
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-white/10 border border-white/20" x-text="appt.appointmentStatus"></span>
+                        </div>
+                        <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                            <span class="opacity-80">Expected:</span>
+                            <span class="font-medium" x-text="formatDate(appt.userExpectedAppointmentDate)"></span>
+                            <span class="opacity-60">•</span>
+                            <span class="opacity-80">Applied:</span>
+                            <span class="font-medium" x-text="formatDate(appt.appliedDate)"></span>
+                        </div>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <button class="btn-grad px-3.5 py-2 rounded-xl text-sm font-medium">Approve</button>
+                            <button class="btn-grad btn-danger px-3.5 py-2 rounded-xl text-sm font-medium">Reject</button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Upcoming Appointments -->
+        <div class="glass card-hover rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg md:text-xl font-semibold">Upcoming Appointments</h2>
+                <span class="px-3 py-1 rounded-full text-xs bg-white/10 border border-white/20" x-text="upcomingAppointments.length + ' total'"></span>
+            </div>
+            <div class="space-y-3 max-h-[28rem] overflow-auto soft-scroll">
+                <template x-if="isLoading">
+                    <div class="space-y-3">
+                        <div class="rounded-xl h-20 shimmer"></div>
+                        <div class="rounded-xl h-20 shimmer"></div>
+                    </div>
+                </template>
+                <template x-if="!isLoading && upcomingAppointments.length === 0">
+                    <p class="opacity-80">No upcoming appointments.</p>
+                </template>
+                <template x-for="appt in upcomingAppointments" :key="appt.userEmail + (appt.userConfirmedAppointmentDate || '')">
+                    <div class="rounded-xl border border-white/20 bg-white/5 p-4 transition-all hover:bg-white/10">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-semibold" x-text="appt.userName"></p>
+                                <p class="text-sm opacity-80" x-text="appt.userEmail"></p>
+                                <p class="text-sm opacity-80" x-text="'Mobile: ' + (appt.userMobile || '-')"></p>
+                            </div>
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-white/10 border border-white/20" x-text="appt.appointmentStatus"></span>
+                        </div>
+                        <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                            <span class="opacity-80">Confirmed:</span>
+                            <span class="font-medium" x-text="formatDate(appt.userConfirmedAppointmentDate)"></span>
+                            <span class="opacity-60">•</span>
+                            <span class="opacity-80">Applied:</span>
+                            <span class="font-medium" x-text="formatDate(appt.appliedDate)"></span>
+                        </div>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <button class="btn-grad px-3.5 py-2 rounded-xl text-sm font-medium">View Details</button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Completed Appointments -->
+        <div class="glass card-hover rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg md:text-xl font-semibold">Completed Appointments</h2>
+                <span class="px-3 py-1 rounded-full text-xs bg-white/10 border border-white/20" x-text="completedAppointments.length + ' total'"></span>
+            </div>
+            <div class="space-y-3 max-h-[24rem] overflow-auto soft-scroll">
+                <template x-if="isLoading">
+                    <div class="space-y-3">
+                        <div class="rounded-xl h-16 shimmer"></div>
+                        <div class="rounded-xl h-16 shimmer"></div>
+                    </div>
+                </template>
+                <template x-if="!isLoading && completedAppointments.length === 0">
+                    <p class="opacity-80">No completed appointments.</p>
+                </template>
+                <template x-for="appt in completedAppointments" :key="appt.userEmail + (appt.userVisitedAppointmentDate || '')">
+                    <div class="rounded-xl border border-white/20 bg-white/5 p-4 transition-all hover:bg-white/10">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-semibold" x-text="appt.userName"></p>
+                                <p class="text-sm opacity-80" x-text="appt.userEmail"></p>
+                            </div>
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-white/10 border border-white/20" x-text="appt.appointmentStatus"></span>
+                        </div>
+                        <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                            <span class="opacity-80">Visited:</span>
+                            <span class="font-medium" x-text="formatDate(appt.userVisitedAppointmentDate)"></span>
+                            <span class="opacity-60">•</span>
+                            <span class="opacity-80">Applied:</span>
+                            <span class="font-medium" x-text="formatDate(appt.appointmentAppliedDate)"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Canceled Appointments -->
+        <div class="glass card-hover rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg md:text-xl font-semibold">Canceled Appointments</h2>
+                <span class="px-3 py-1 rounded-full text-xs bg-white/10 border border-white/20" x-text="canceledAppointments.length + ' total'"></span>
+            </div>
+            <div class="space-y-3 max-h-[24rem] overflow-auto soft-scroll">
+                <template x-if="isLoading">
+                    <div class="space-y-3">
+                        <div class="rounded-xl h-16 shimmer"></div>
+                    </div>
+                </template>
+                <template x-if="!isLoading && canceledAppointments.length === 0">
+                    <p class="opacity-80">No canceled appointments.</p>
+                </template>
+                <template x-for="appt in canceledAppointments" :key="appt.userEmail + (appt.userCancelAppointmentDate || '')">
+                    <div class="rounded-xl border border-white/20 bg-white/5 p-4 transition-all hover:bg-white/10">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-semibold" x-text="appt.userName"></p>
+                                <p class="text-sm opacity-80" x-text="appt.userEmail"></p>
+                            </div>
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-white/10 border border-white/20" x-text="appt.appointmentStatus"></span>
+                        </div>
+                        <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                            <span class="opacity-80">Canceled:</span>
+                            <span class="font-medium" x-text="formatDate(appt.userCancelAppointmentDate)"></span>
+                            <span class="opacity-60">•</span>
+                            <span class="opacity-80">Applied:</span>
+                            <span class="font-medium" x-text="formatDate(appt.appointmentAppliedDate)"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Top Hospitals for Job Apply -->
+        <div class="glass card-hover rounded-2xl p-5 lg:col-span-2">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg md:text-xl font-semibold">Top Hospitals for Job Apply</h2>
+                <span class="px-3 py-1 rounded-full text-xs bg-white/10 border border-white/20" x-text="hospitalList.length + ' listed'"></span>
+            </div>
+            <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <template x-if="isLoading">
+                    <div class="space-y-3 md:col-span-2 xl:col-span-3">
+                        <div class="rounded-2xl h-24 shimmer"></div>
+                        <div class="rounded-2xl h-24 shimmer"></div>
+                        <div class="rounded-2xl h-24 shimmer"></div>
+                    </div>
+                </template>
+                <template x-if="!isLoading && hospitalList.length === 0">
+                    <p class="opacity-80 md:col-span-2 xl:col-span-3">No hospitals available.</p>
+                </template>
+                <template x-for="hosp in hospitalList" :key="hosp.hospitalName + hosp.hospitalAddress">
+                    <div class="rounded-2xl border border-white/20 bg-white/5 p-4 transition-all hover:bg-white/10">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-semibold" x-text="hosp.hospitalName"></p>
+                                <p class="text-sm opacity-80" x-text="hosp.hospitalType"></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm opacity-80">Rating</p>
+                                <p class="text-lg font-bold" x-text="Number(hosp.hospitalRating).toFixed(1)"></p>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-sm opacity-90" x-text="hosp.hospitalAddress"></p>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <button class="btn-grad px-3.5 py-2 rounded-xl text-sm font-medium">Apply</button>
+                            <button class="glass px-3.5 py-2 rounded-xl text-sm font-medium">View</button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Toast -->
+<div x-show="toast.show" x-transition.opacity class="fixed bottom-6 left-1/2 -translate-x-1/2">
+    <div class="glass rounded-xl px-4 py-3 text-sm">
+        <span x-text="toast.message"></span>
+    </div>
 </div>
 
-<div class="main-content">
-    <header>
-        <h2>Welcome, <span id="doctorName"></span></h2>
-    </header>
+<script>
+    function doctorDashboard() {
+      return {
+        // State
+        isLoading: true,
+        doctorName: '',
+        pendingAppointments: [],
+        upcomingAppointments: [],
+        completedAppointments: [],
+        canceledAppointments: [],
+        hospitalList: [],
+        toast: { show: false, message: '' },
 
-    <section>
-        <h3>Pending Appointments</h3>
-        <div id="pendingAppointments" class="card-container"></div>
-    </section>
+        // Methods
+        async loadDashboard() {
+          this.isLoading = true;
+          try {
+            const res = await fetch('/dashboardDoctor', { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) { throw new Error(await res.text()); }
+            const data = await res.json();
 
-    <section>
-        <h3>Upcoming Appointments</h3>
-        <div id="upcomingAppointments" class="card-container"></div>
-    </section>
+            // Map exactly to your backend keys
+            this.doctorName = data.CurrentUserName || '';
+            this.pendingAppointments = Array.isArray(data.PendingAppointments) ? data.PendingAppointments : [];
+            this.upcomingAppointments = Array.isArray(data.UpComingAppointments) ? data.UpComingAppointments : [];
+            this.completedAppointments = Array.isArray(data.completedAppointments) ? data.completedAppointments : [];
+            this.canceledAppointments = Array.isArray(data.canceledAppointments) ? data.canceledAppointments : [];
+            this.hospitalList = Array.isArray(data.hospitalListForJobApply) ? data.hospitalListForJobApply : [];
 
-    <section>
-        <h3>Completed Appointments</h3>
-        <div id="completedAppointments" class="card-container"></div>
-    </section>
-
-    <section>
-        <h3>Canceled Appointments</h3>
-        <div id="canceledAppointments" class="card-container"></div>
-    </section>
-
-    <section>
-        <h3>Hospitals (Apply for Job)</h3>
-        <div id="hospitalList" class="card-container"></div>
-    </section>
-</div>
-
-<!-- Popup for messages -->
-<div id="popup" class="popup"></div>
-
-<script th:src="@{/script/doctorDashboard.js}"></script>
+            this.toastify('Dashboard updated');
+          } catch (err) {
+            this.toastify('Error: ' + (err?.message || 'Failed to load'));
+            console.error(err);
+          } finally {
+            this.isLoading = false;
+          }
+        },
+        formatDate(dateStr) {
+          if (!dateStr) return '-';
+          const d = new Date(dateStr);
+          if (isNaN(d.getTime())) return '-';
+          return d.toLocaleString(undefined, {
+            year: 'numeric', month: 'short', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
+          });
+        },
+        toastify(message) {
+          this.toast.message = message;
+          this.toast.show = true;
+          setTimeout(() => this.toast.show = false, 1800);
+        },
+      }
+    }
+</script>
 </body>
 </html>

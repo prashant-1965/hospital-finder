@@ -5,10 +5,7 @@ import com.healthcare.finder.doctorHospitalFinder.application.dto.AppUserRegiste
 import com.healthcare.finder.doctorHospitalFinder.application.services.AppUserServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/appUser")
@@ -19,5 +16,9 @@ public class AppUserController {
     @PostMapping("/register")
     public ResponseEntity<String> clientSignUp(@RequestBody AppUserRegisterDto appUserRegisterDto){
         return ResponseEntity.status(200).body(appUserServices.addAppUser(appUserRegisterDto));
+    }
+    @PutMapping("/changePasswordRequest")
+    public ResponseEntity<String> changeUserPassword(@RequestParam String userEmail, @RequestParam String password){
+        return ResponseEntity.status(200).body(appUserServices.changeAppUserPasswordRequest(userEmail,password));
     }
 }

@@ -2,7 +2,9 @@ package com.healthcare.finder.doctorHospitalFinder.application.repository;
 
 import com.healthcare.finder.doctorHospitalFinder.application.entity.AppUser;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.AppUserCountryStateProjection;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -24,7 +26,9 @@ public interface AppUserRepo extends JpaRepository<AppUser, Long> {
     @Query("select a from AppUser a where a.userEmail = :email")
     Optional<AppUser> findByUserEmail(@Param("email") String email);
 
-    @Query("select a from AppUser a where a.userName = :name")
-    Optional<AppUser> findByUsername(@Param("name") String name);
+    @Transactional
+    @Modifying
+    @Query("update AppUser a set a.userPassword = :password where a.userEmail = :userEmail")
+    void updateUserPassword(@Param("userEmail") String userEmail, @Param("password") String password);
 
 }

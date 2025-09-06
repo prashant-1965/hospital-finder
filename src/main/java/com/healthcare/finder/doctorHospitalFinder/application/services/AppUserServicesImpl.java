@@ -93,4 +93,14 @@ public class AppUserServicesImpl implements AppUserServices, UserDetailsService 
         }
         return userLocationList;
     }
+
+    @Override
+    public String changeAppUserPasswordRequest(String userEmail,String password) {
+        Optional<AppUser> appUser = appUserRepo.findByUserEmail(userEmail);
+        if(appUser.isEmpty()){
+            throw new AppUserException(userEmail+" has not registered in our system!",HttpStatus.NOT_FOUND);
+        }
+        appUserRepo.updateUserPassword(userEmail,password);
+        return "You Password Updated SuccessFully!";
+    }
 }

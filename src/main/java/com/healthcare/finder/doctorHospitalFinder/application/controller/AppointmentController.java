@@ -14,8 +14,6 @@ import java.util.List;
 @RequestMapping("/appointment")
 public class AppointmentController {
     @Autowired
-    private AppUserRepo appUserRepo;
-    @Autowired
     private AppointmentService appointmentService;
 
     @PostMapping("/registerAppointment")
