@@ -178,6 +178,7 @@ public class DoctorServiceImpl implements DoctorService{
         long totalReview = doctorReviewRepo.getTotalReviewForIndividualDoctorByName(doctorReviewDto.getDoctorName());
         double previousRatting = doctorRepo.getAvgRattingByDoctorName(doctorReviewDto.getDoctorName());
         double newAvgRatting = ((previousRatting * totalReview) + doctorReviewDto.getDoctorRatting()) / (totalReview + 1);
+        newAvgRatting = Math.round(newAvgRatting * 10.0) / 10.0;
         doctor.setDoctorRating(newAvgRatting);
         DoctorReview doctorReview = new DoctorReview();
         doctorReview.setRating(doctorReviewDto.getDoctorRatting());

@@ -32,6 +32,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     public String registerAppointment(AppointmentRegistrationDto appointmentRegistrationDto) throws DoctorsException, HospitalException, FacilitiesException {
 
+        Optional<Appointment> optionalAppointment = appointmentRepo.appointmentExistByDoctorEmailAndFacility(appointmentRegistrationDto.getDoctorName(),appointmentRegistrationDto.getFacilityName());
+        if (optionalAppointment.isPresent()){
+            throw new AppointmentException("You have already book appointment with "+appointmentRegistrationDto.getDoctorName()+" on "+appointmentRegistrationDto.getFacilityName(),HttpStatus.BAD_REQUEST);
+        }
         Doctor doctor = doctorRepo.findByDoctorName(appointmentRegistrationDto.getDoctorName());
         Optional<Hospital> hospital = hospitalRepo.getHospitalByDoctorName(appointmentRegistrationDto.getDoctorName());
         MedicalFacilities facility = facilitiesRepo.findByFacilityName(appointmentRegistrationDto.getFacilityName());
@@ -51,35 +55,35 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public List<PendingAppointmentProjection> getPendingAppointmentsByDoctorEmail(String doctorEmail) {
         List<PendingAppointmentProjection> appointmentPendinglList = appointmentRepo.findPendingAppointmentsByDoctorEmail(doctorEmail);
-        if (appointmentPendinglList.isEmpty()) throw new AppointmentException("You have not booked any appointment till "+ LocalDate.now(), HttpStatus.NOT_FOUND);
+        if (appointmentPendinglList.isEmpty()) throw new AppointmentException("You have not any appointment till "+ LocalDate.now(), HttpStatus.NOT_FOUND);
         return appointmentPendinglList;
     }
 
     @Override
     public List<UpComingAppointmentProjection> getUpComingAppointmentsByDoctorEmail(String doctorEmail) {
         List<UpComingAppointmentProjection> appointmentUpCominglList = appointmentRepo.findUpComingAppointmentsByDoctorEmail(doctorEmail);
-        if (appointmentUpCominglList.isEmpty()) throw new AppointmentException("You have not booked any appointment till "+ LocalDate.now(), HttpStatus.NOT_FOUND);
+        if (appointmentUpCominglList.isEmpty()) throw new AppointmentException("There are not any upcoming appointment till "+ LocalDate.now(), HttpStatus.NOT_FOUND);
         return appointmentUpCominglList;
     }
 
     @Override
     public List<CompletedAppointmentProjection> getCompletedAppointmentsByDoctorEmail(String doctorEmail) {
         List<CompletedAppointmentProjection> appointmentCompletelList = appointmentRepo.findCompletedAppointmentsByDoctorEmail(doctorEmail);
-        if (appointmentCompletelList.isEmpty()) throw new AppointmentException("You have not booked any appointment till "+ LocalDate.now(), HttpStatus.NOT_FOUND);
+        if (appointmentCompletelList.isEmpty()) throw new AppointmentException("No appointment record available till "+ LocalDate.now(), HttpStatus.NOT_FOUND);
         return appointmentCompletelList;
     }
 
     @Override
     public List<CancelAppointmentProjection> getCancelAppointmentsByDoctorEmail(String doctorEmail) throws AppointmentException {
         List<CancelAppointmentProjection> appointmentCancelList = appointmentRepo.findCancelAppointmentsByDoctorEmail(doctorEmail);
-        if (appointmentCancelList.isEmpty()) throw new AppointmentException("You have not booked any appointment till "+ LocalDate.now(), HttpStatus.NOT_FOUND);
+        if (appointmentCancelList.isEmpty()) throw new AppointmentException("No appointment record available till "+ LocalDate.now(), HttpStatus.NOT_FOUND);
         return appointmentCancelList;
     }
 
     @Override
     public List<AppUserAppointmentProjection> findAllBookedAppointmentByUserName(String userEmail) throws AppointmentException {
         List<AppUserAppointmentProjection> appointmentList = appointmentRepo.findAllAppointmentListByUserEmail(userEmail);
-        if (appointmentList.isEmpty()) throw new AppointmentException("You have not booked any appointment till "+ LocalDate.now(), HttpStatus.NOT_FOUND);
+        if (appointmentList.isEmpty()) throw new AppointmentException("No appointment record available till "+ LocalDate.now(), HttpStatus.NOT_FOUND);
         return appointmentList;
     }
 
@@ -91,8 +95,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public String updateAppointmentStatus(String userEmail, String newStatus) {
-        appointmentRepo.updateAppointmentStatusByUserEmail(userEmail,newStatus,LocalDateTime.now());
-        return "User with "+ userEmail +"'s status has been updated to "+newStatus;
+    public String updateAppointmentStatus(String userEmail, String newStatus, String facility) {
+        appointmentRepo.updateAppointmentStatusByUserEmail(userEmail,newStatus,LocalDateTime.now(),facility);
+        return "User with "+ userEmail +"'s status has been updated to "+newStatus+ " for "+facility;
     }
 }

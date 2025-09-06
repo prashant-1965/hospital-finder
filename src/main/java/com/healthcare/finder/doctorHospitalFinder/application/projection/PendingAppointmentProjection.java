@@ -11,6 +11,7 @@ public class PendingAppointmentProjection {
     private String userName;
     private String userEmail;
     private String userMobile;
+    private String bookedFacilityName;
     private String appointmentStatus; // pending
     private LocalDateTime userExpectedAppointmentDate;
     private LocalDateTime appliedDate;

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class CompletedAppointmentProjection {
     private String userName;
     private String userEmail;
+    private String facilityBookedName;
     private String appointmentStatus; // Completed
     private LocalDateTime userVisitedAppointmentDate;
     private LocalDateTime appointmentAppliedDate;

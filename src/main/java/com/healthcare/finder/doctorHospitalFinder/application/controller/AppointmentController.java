@@ -20,16 +20,19 @@ public class AppointmentController {
     public ResponseEntity<String> tryDoctorAppointmentBooking(@RequestBody AppointmentRegistrationDto appointmentRegistrationDto){
         return ResponseEntity.status(200).body(appointmentService.registerAppointment(appointmentRegistrationDto));
     }
+
     @GetMapping("/MyAppointment")
     public ResponseEntity<List<AppUserAppointmentProjection>> getAllAppointments(@RequestParam String email){
         return ResponseEntity.status(200).body(appointmentService.findAllBookedAppointmentByUserName(email));
     }
+
     @PutMapping("/updateStatus")
-    public ResponseEntity<String> updateAppointmentStatus(@RequestBody String email, @RequestBody String newStatus){
-        return ResponseEntity.status(200).body(appointmentService.updateAppointmentStatus(email,newStatus));
+    public ResponseEntity<String> updateAppointmentStatus(@RequestParam String userEmail, @RequestParam String newStatus, @RequestParam String facility){
+        return ResponseEntity.status(200).body(appointmentService.updateAppointmentStatus(userEmail,newStatus,facility));
     }
+
     @DeleteMapping("/removeAppointment")
-    public ResponseEntity<String> removeAppointments(@RequestBody String email){
+    public ResponseEntity<String> removeAppointments(@RequestParam String email){
         return ResponseEntity.status(200).body(appointmentService.removeAppointmentsByUserEmail(email));
     }
 

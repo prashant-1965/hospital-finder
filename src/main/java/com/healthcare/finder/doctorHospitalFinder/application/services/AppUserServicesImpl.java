@@ -100,7 +100,7 @@ public class AppUserServicesImpl implements AppUserServices, UserDetailsService 
         if(appUser.isEmpty()){
             throw new AppUserException(userEmail+" has not registered in our system!",HttpStatus.NOT_FOUND);
         }
-        appUserRepo.updateUserPassword(userEmail,password);
+        appUserRepo.updateUserPassword(userEmail,passwordEncoder.encode(password));
         return "You Password Updated SuccessFully!";
     }
 }

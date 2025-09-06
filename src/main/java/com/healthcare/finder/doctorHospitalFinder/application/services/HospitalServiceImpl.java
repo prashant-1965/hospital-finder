@@ -97,6 +97,7 @@ public class HospitalServiceImpl implements HospitalService {
         long totalReview = hospitalReviewRepo.getTotalReviewForIndividualHospitalByName(hospitalReviewDto.getHospitalName());
         double previousRatting = hospitalRepo.getRattingByHospitalName(hospitalReviewDto.getHospitalName());
         double newAvgRatting = ((previousRatting * totalReview) + hospitalReviewDto.getHospitalRating()) / (totalReview + 1);
+        newAvgRatting = Math.round(newAvgRatting * 10.0) / 10.0;
         hospital.setHospitalRating(newAvgRatting);
         HospitalReview hospitalReview = new HospitalReview();
         hospitalReview.setRating(hospitalReviewDto.getHospitalRating());

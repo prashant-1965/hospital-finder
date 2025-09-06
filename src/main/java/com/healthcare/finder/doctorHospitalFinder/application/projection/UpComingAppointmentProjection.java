@@ -11,6 +11,7 @@ public class UpComingAppointmentProjection {
     private String userName;
     private String userEmail;
     private String userMobile;
+    private String facilityBooked;
     private String appointmentStatus; // upComing
     private LocalDateTime userConfirmedAppointmentDate;
     private LocalDateTime appliedDate;
