@@ -45,7 +45,7 @@ public class DoctorController {
 
     @GetMapping("/getDoctorDetails")
     public ResponseEntity<IndividualDoctorDetailProjection> findDoctorByName(@RequestParam String doctorName){
-        return ResponseEntity.status(200).body(doctorService.findDoctorDetailByName(doctorName));
+        return ResponseEntity.status(200).body(doctorService.findDoctorDetailByDoctorName(doctorName));
     }
 
     @PostMapping("/addReview")

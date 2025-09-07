@@ -8,6 +8,9 @@ import com.healthcare.finder.doctorHospitalFinder.application.repository.AppUser
 import com.healthcare.finder.doctorHospitalFinder.application.projection.AppUserCountryStateProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.RoleRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -35,6 +38,7 @@ public class AppUserServicesImpl implements AppUserServices, UserDetailsService 
     private PasswordEncoder passwordEncoder;
 
     @Override
+    @CacheEvict(value = "loadUserByUsername",allEntries = true)
     public String addAppUser(AppUserRegisterDto appUserRegisterDto) throws AppUserException {
         if(appUserRegisterDto.getUserCountry().isEmpty()  || appUserRegisterDto.getUserEmail().isEmpty()){
             throw new AppUserException("All fields are mandatory to fill",HttpStatus.BAD_REQUEST);
@@ -66,6 +70,7 @@ public class AppUserServicesImpl implements AppUserServices, UserDetailsService 
     }
 
     @Override
+    @Cacheable(value = "loadUserByUsername",key = "#userEmail",unless = "#result==null")
     public UserDetails loadUserByUsername(String userEmail) throws AppUserException
     {
         Optional<AppUser> appUser = appUserRepo.findByUserEmail(userEmail);
@@ -78,23 +83,8 @@ public class AppUserServicesImpl implements AppUserServices, UserDetailsService 
                 List.of(new SimpleGrantedAuthority("ROLE_"+appUser.get().getRole().getRoleName()))
         );
     }
-
     @Override
-    public List<AppUserCountryStateProjection> getAppUserCountryAndState() throws AppUserException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        AppUser appUser =(AppUser) authentication.getPrincipal();
-        String email = appUser.getUserEmail();
-        if(email==null || email.isEmpty()){
-            throw new AppUserException("Email is not registered",HttpStatus.BAD_REQUEST);
-        }
-        List<AppUserCountryStateProjection> userLocationList = appUserRepo.getAppUserCountryAndState(email);
-        if(userLocationList.isEmpty()){
-            throw new AppUserException("No user Found", HttpStatus.NOT_FOUND);
-        }
-        return userLocationList;
-    }
-
-    @Override
+    @CacheEvict(value = "loadUserByUsername", key = "#userEmail")
     public String changeAppUserPasswordRequest(String userEmail,String password) {
         Optional<AppUser> appUser = appUserRepo.findByUserEmail(userEmail);
         if(appUser.isEmpty()){

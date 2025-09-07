@@ -1,12 +1,14 @@
 package com.healthcare.finder.doctorHospitalFinder.application.services;
 
 import com.healthcare.finder.doctorHospitalFinder.application.classException.FacilitiesException;
-import com.healthcare.finder.doctorHospitalFinder.application.classException.HospitalException;
 import com.healthcare.finder.doctorHospitalFinder.application.dto.MedicalFacilitiesRegisterDto;
 import com.healthcare.finder.doctorHospitalFinder.application.entity.MedicalFacilities;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.FacilityListProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.FacilitiesRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ public class FacilitiesServiceImpl implements FacilitiesService {
     private FacilitiesRepo facilitiesRepo;
 
     @Override
+    @Cacheable(value = "FacilityListProjection")
     public List<FacilityListProjection> getAllAvailableFacilities() throws FacilitiesException {
         List<FacilityListProjection> getfacilitiesList = facilitiesRepo.getAllAvailableFacility();
         if (getfacilitiesList.isEmpty()){
@@ -28,6 +31,11 @@ public class FacilitiesServiceImpl implements FacilitiesService {
     }
 
     @Override
+    @Caching(evict={
+                @CacheEvict(value = "FacilityListProjection",allEntries = true),
+                @CacheEvict(value = "facilityListByHospitalName",allEntries = true)
+            }
+    )
     public String addFacility(MedicalFacilitiesRegisterDto medicalFacilitiesRegisterDto) throws FacilitiesException {
         if(medicalFacilitiesRegisterDto.getFacilityName().isEmpty()){
             throw new FacilitiesException("Invalid facility name",HttpStatus.BAD_REQUEST);
@@ -47,15 +55,17 @@ public class FacilitiesServiceImpl implements FacilitiesService {
     }
 
     @Override
+    @Cacheable(value = "doctorListByDoctorEmail",key = "#doctorEmail",condition = "#doctorEmail!=null")
     public List<String> findFacilityByDoctorEmail(String doctorEmail) throws FacilitiesException {
         List<String> doctorList = facilitiesRepo.findFacilityByDoctorEmail(doctorEmail);
         if(doctorList.isEmpty()){
-            throw new FacilitiesException(doctorEmail+" is not providing any Facility!",HttpStatus.NOT_FOUND);
+            throw new FacilitiesException(doctorEmail +" is not providing any Facility!",HttpStatus.NOT_FOUND);
         }
         return doctorList;
     }
 
     @Override
+    @Cacheable(value = "facilityListByHospitalName",key = "#hospitalName", unless = "#result==null")
     public List<String> findFacilityByHospitalName(String hospitalName) throws FacilitiesException {
         List<String> facilityList = facilitiesRepo.getFacilityByHospitalName(hospitalName);
         if (facilityList.isEmpty()){

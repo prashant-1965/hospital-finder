@@ -6,6 +6,8 @@ import com.healthcare.finder.doctorHospitalFinder.application.entity.*;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.HospitalApplicationProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,7 @@ public class HospitalApplicationServiceImpl implements HospitalApplicationServic
     private HospitalRepo hospitalRepo;
 
     @Override
+    @CacheEvict(value = "AllPendingHospitalRequest",allEntries = true)
     public String addHospitalRegistrationRequest(HospitalRegisterDto hospitalRegisterDto) throws CountryException, StateException, FacilitiesException, HospitalException {
         Country country = countryRepo.findCountryByName(hospitalRegisterDto.getCountryName());
         if(country==null){
@@ -63,6 +66,7 @@ public class HospitalApplicationServiceImpl implements HospitalApplicationServic
     }
 
     @Override
+    @Cacheable(value = "AllPendingHospitalRequest")
     public List<HospitalApplicationProjection> findAllPendingHospitalRequest() throws HospitalApplicationException {
         List<HospitalApplication> hospitalApplicationList = hospitalApplicationRepo.getAllPendingHospitalApplicationList();
         if(hospitalApplicationList.isEmpty()){
@@ -88,6 +92,7 @@ public class HospitalApplicationServiceImpl implements HospitalApplicationServic
     }
 
     @Override
+    @CacheEvict(value = "AllPendingHospitalRequest",allEntries = true)
     public String hospitalRemovalRequest(String hospitalName) throws HospitalApplicationException {
         HospitalApplication hospitalApplication = hospitalApplicationRepo.getByHospitalName(hospitalName);
         if(hospitalApplication==null){

@@ -24,8 +24,10 @@ public class FacilitiesController {
     public ResponseEntity<String> registerFacility(@RequestBody MedicalFacilitiesRegisterDto medicalFacilitiesRegisterDto){
         return ResponseEntity.status(200).body(facilitiesService.addFacility(medicalFacilitiesRegisterDto));
     }
-    @GetMapping("/facilityByDoctorName")
+    @GetMapping("/facilityByDoctorEmail")
     public ResponseEntity<List<String>> findFacilityByDoctorEmail(@RequestParam String doctorEmail){
+//        System.out.println(doctorEmail);
+//        System.out.println(doctorEmail.isEmpty());
         return ResponseEntity.status(200).body(facilitiesService.findFacilityByDoctorEmail(doctorEmail));
     }
     @GetMapping("/allFacilityByHospitalName")

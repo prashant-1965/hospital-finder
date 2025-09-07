@@ -6,6 +6,8 @@ import com.healthcare.finder.doctorHospitalFinder.application.entity.Country;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.CountryRepo;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.CountryListProjection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,7 @@ public class CountryServicesImpl implements CountryServices {
     private CountryRepo countryRepo;
 
     @Override
+    @Cacheable(value = "AllCountryList")
     public List<CountryListProjection> getCountryList() throws CountryException {
         List<CountryListProjection> countryListProjections = countryRepo.allCountryList();
         if(countryListProjections.isEmpty()){
@@ -27,6 +30,7 @@ public class CountryServicesImpl implements CountryServices {
     }
 
     @Override
+    @CacheEvict(value = "AllCountryList",allEntries = true)
     public String addCountry(CountryRegisterDto countryRegisterDto) throws CountryException {
         if(countryRegisterDto.getCountryName().isEmpty()){
             throw new CountryException("Invalid Country Name!",HttpStatus.BAD_REQUEST);

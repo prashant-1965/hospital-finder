@@ -8,6 +8,8 @@ import com.healthcare.finder.doctorHospitalFinder.application.projection.Top10Ra
 import com.healthcare.finder.doctorHospitalFinder.application.repository.AppUserRepo;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.GlobalReviewRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class GlobalReviewServiceImpl implements GlobalReviewService {
     private AppUserRepo appUserRepo;
 
     @Override
+    @Cacheable(value = "Top10RattingCommentProjection")
     public List<Top10RattingCommentProjection> getTop10RecentGlobalReviews() throws GlobalReviewException {
         List<Top10RattingCommentProjection> getRecentReviewList =  globalReviewRepo.findTop10RecentGlobalReviews(PageRequest.of(0,10));
         if(getRecentReviewList.isEmpty()){
@@ -34,6 +37,7 @@ public class GlobalReviewServiceImpl implements GlobalReviewService {
     }
 
     @Override
+    @CacheEvict(value = "Top10RattingCommentProjection",allEntries = true)
     public String addGlobalReview(GlobalReviewRegisterDto globalReviewRegisterDto) throws GlobalReviewException {
 
         Optional<AppUser> appUser = appUserRepo.findByUserEmail(globalReviewRegisterDto.getUserEmail());

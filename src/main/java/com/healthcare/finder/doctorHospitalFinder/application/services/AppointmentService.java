@@ -11,7 +11,7 @@ public interface AppointmentService {
     List<UpComingAppointmentProjection> getUpComingAppointmentsByDoctorEmail(String doctorEmail);
     List<CompletedAppointmentProjection> getCompletedAppointmentsByDoctorEmail(String doctorEmail);
     List<CancelAppointmentProjection> getCancelAppointmentsByDoctorEmail(String doctorEmail);
-    List<AppUserAppointmentProjection> findAllBookedAppointmentByUserName(String userEmail);
+    List<AppUserAppointmentProjection> findAllBookedAppointmentByUserEmail(String userEmail);
     String removeAppointmentsByUserEmail(String userEmail);
     String updateAppointmentStatus(String userEmail, String newStatus, String facility);
 }

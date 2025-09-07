@@ -8,6 +8,9 @@ import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNHos
 import com.healthcare.finder.doctorHospitalFinder.application.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 
 import org.springframework.http.HttpStatus;
@@ -37,6 +40,7 @@ public class HospitalServiceImpl implements HospitalService {
     private HospitalApplicationRepo hospitalApplicationRepo;
 
     @Override
+    @Cacheable(value = "TopNHospitalListProjection",key = "#countryName+':'+#n")
     public List<TopNHospitalListProjection> getTopNHospitalListByCountry(String countryName, int n) throws HospitalException {
         if(countryName.isEmpty()){
             throw new HospitalException("Please provide a valid country name", HttpStatus.BAD_REQUEST);
@@ -49,6 +53,7 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
+    @Cacheable(value = "TopNHospitalListProjection")
     public List<TopNHospitalListProjection> getTopNHospitalList() throws HospitalException {
         List<TopNHospitalListProjection> topNHospitalListProjections = hospitalRepo.getFirstNHospitalList(PageRequest.of(0,10));
         if(topNHospitalListProjections.isEmpty()){
@@ -58,6 +63,7 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
+    @Cacheable(value = "TopNGovHospitalListProjection",key = "#countryName+':'+#specializedIn")
     public List<TopNHospitalListProjection> getTopNGovHospitalList(String countryName, String specializedIn) throws HospitalException {
         if (countryName.isEmpty()) {
             throw new HospitalException("Please provide a valid country name", HttpStatus.BAD_REQUEST);
@@ -73,6 +79,7 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
+    @Cacheable(value = "TopNPrivateHospitalListProjection",key = "#countryName+':'+#specializedIn")
     public List<TopNHospitalListProjection> getTopNPrivateHospitalList(String countryName, String specializedIn) throws HospitalException {
         if(countryName.isEmpty()){
             throw new HospitalException("Please provide a valid country name", HttpStatus.BAD_REQUEST);
@@ -87,7 +94,14 @@ public class HospitalServiceImpl implements HospitalService {
         return topNHospitalListProjections;
     }
 
+
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "TopNHospitalListProjection", allEntries = true),
+            @CacheEvict(value = "TopNGovHospitalListProjection", allEntries = true),
+            @CacheEvict(value = "TopNPrivateHospitalListProjection", allEntries = true),
+            @CacheEvict(value = "IndividualHospitalDetailProjection", key = "#hospitalReviewDto.hospitalName")
+    })
     public String addHospitalReviews(HospitalReviewDto hospitalReviewDto) throws HospitalException{
         Optional<AppUser> appUser = appUserRepo.findByUserEmail(hospitalReviewDto.getAppUserEmail());
         if(appUser.isEmpty()){
@@ -109,6 +123,13 @@ public class HospitalServiceImpl implements HospitalService {
         return "Review Added SuccessFully!";
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "AllAvailableHospital", allEntries = true),
+            @CacheEvict(value = "TopNHospitalListProjection", allEntries = true),
+            @CacheEvict(value = "TopNGovHospitalListProjection", allEntries = true),
+            @CacheEvict(value = "TopNPrivateHospitalListProjection", allEntries = true),
+            @CacheEvict(value = "IndividualHospitalDetailProjection", key = "#hospital.hospitalName")
+    })
     @Transactional
     @Override
     public String registerHospital(String hospitalName) throws HospitalException, CountryException, StateException, FacilitiesException {
@@ -136,6 +157,7 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
+    @Cacheable(value = "AllAvailableHospital")
     public List<String> findAllAvailableHospital() throws DoctorsException{
         List<String> hospitalList = hospitalRepo.findAllHospital();
         if(hospitalList.isEmpty()){
@@ -145,6 +167,7 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
+    @Cacheable(value = "HospitalByDoctorEmail",key = "#doctorEmail")
     public String findHospitalByDoctoEmail(String doctorEmail) throws HospitalException {
         Optional<String> hospital = hospitalRepo.getHospitalByDoctorEmail(doctorEmail);
         if(hospital.isEmpty()){
@@ -154,6 +177,7 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
+    @Cacheable(value = "IndividualHospitalDetailProjection",key = "#hospitalName")
     public IndividualHospitalDetailProjection findHospitalDetailByName(String hospitalName) throws HospitalException {
         Optional<IndividualHospitalDetailProjection> individualHospitalDetailProjection = hospitalRepo.getHospitalDetailByName(hospitalName);
         if(individualHospitalDetailProjection.isEmpty()){
@@ -163,6 +187,7 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
+    @Cacheable(value = "HospitalByFacilityName",key = "#facilityName")
     public List<String> findHospitalByFacilityName(String facilityName) throws HospitalException{
         List<String> hospitalList = hospitalRepo.getHospitalByFacilityName(facilityName);
         if(hospitalList.isEmpty()){
@@ -172,6 +197,7 @@ public class HospitalServiceImpl implements HospitalService {
     }
 
     @Override
+    @Cacheable(value = "HospitalByFacilityNameAndDoctorEmail",key = "#facilityName+':'+#doctorEmail")
     public List<String> findHospitalByFacilityNameAndDoctorEmail(String facilityName, String doctorEmail) throws HospitalException {
         List<String> hospitalList = hospitalRepo.getHospitalByFacilityNameAndDoctorEmail(facilityName,doctorEmail);
         if(hospitalList.isEmpty()){

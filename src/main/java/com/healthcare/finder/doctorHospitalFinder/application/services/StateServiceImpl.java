@@ -9,6 +9,8 @@ import com.healthcare.finder.doctorHospitalFinder.application.repository.Country
 import com.healthcare.finder.doctorHospitalFinder.application.repository.StatesRepo;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.StateListProjection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,7 @@ public class StateServiceImpl implements StateService{
     private CountryRepo countryRepo;
 
     @Override
+    @Cacheable(value = "StateListProjection",key = "#countryName",unless = "#result==null")
     public List<StateListProjection> getStateList(String countryName) throws StateException {
         List<StateListProjection> stateListProjections = statesRepo.allStateListByCountry(countryName);
         if(stateListProjections.isEmpty()){
@@ -32,6 +35,7 @@ public class StateServiceImpl implements StateService{
     }
 
     @Override
+    @CacheEvict(value = "StateListProjection",allEntries = true)
     public String addState(StateRegisterDto stateRegisterDto) throws StateException,CountryException {
         if(stateRegisterDto.getStateName().isEmpty()){
             throw new StateException("Invalid State Name!",HttpStatus.BAD_REQUEST);

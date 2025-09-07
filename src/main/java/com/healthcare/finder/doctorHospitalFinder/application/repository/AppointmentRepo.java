@@ -53,7 +53,7 @@ public interface AppointmentRepo extends JpaRepository<Appointment,Long> {
     void deleteAppointmentByAppUserEmail(@Param("email") String email);
 
     @Query("select a from Appointment a join a.doctor d join a.facilities f where d.doctorEmail = :doctorName and f.facilityName = :facilityName")
-    Optional<Appointment> appointmentExistByDoctorEmailAndFacility(@Param("doctorEmail") String doctorName, @Param("facilityName") String facilityName);
+    Optional<Appointment> appointmentExistByDoctorEmailAndFacility(@Param("doctorName") String doctorName, @Param("facilityName") String facilityName);
 
     @Modifying
     @Transactional

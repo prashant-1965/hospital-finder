@@ -4,11 +4,15 @@ import com.healthcare.finder.doctorHospitalFinder.application.entity.MedicalFaci
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class DoctorApplicationProjection {
+public class DoctorApplicationProjection implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private String tmpDoctorName;
     private int tmpDoctorAge;
     private String tmpDoctorGender;

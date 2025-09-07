@@ -3,9 +3,14 @@ package com.healthcare.finder.doctorHospitalFinder.application.projection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Data
 @AllArgsConstructor
-public class IndividualDoctorDetailProjection {
+public class IndividualDoctorDetailProjection implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private String doctorName;
     private int doctorAge;
     private String doctorGender;

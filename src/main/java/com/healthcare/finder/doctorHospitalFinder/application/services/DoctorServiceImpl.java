@@ -8,6 +8,9 @@ import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNDoc
 import com.healthcare.finder.doctorHospitalFinder.application.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,7 @@ public class DoctorServiceImpl implements DoctorService{
 
 
     @Override
+    @Cacheable(value ="TopNDoctorListProjection", key = "#countryName+':'+#n",unless = "#result==null")
     public List<TopNDoctorListProjection> getTopNDoctorListByCountry(String countryName, int n) throws DoctorsException {
         if(countryName.isEmpty()){
             throw new DoctorsException("Please provide a valid country name", HttpStatus.BAD_REQUEST);
@@ -56,6 +60,7 @@ public class DoctorServiceImpl implements DoctorService{
     }
 
     @Override
+    @Cacheable(value ="TopNDoctorListProjection",unless = "#result==null")
     public List<TopNDoctorListProjection> getTop10DoctorList() throws DoctorsException {
 
         List<TopNDoctorListProjection>  topNDoctorListProjections = doctorRepo.findTop10Doctors(PageRequest.of(0, 10));
@@ -66,6 +71,7 @@ public class DoctorServiceImpl implements DoctorService{
     }
 
     @Override
+    @Cacheable(value ="TopNDoctorListProjection", key = "#countryName",unless = "#result==null")
     public List<TopNDoctorListProjection> getTop5DoctorListByCountry(String countryName) {
         List<TopNDoctorListProjection>  topNDoctorListProjections = doctorRepo.findTopNDoctorsByCountry(countryName,PageRequest.of(0, 5));
         if(topNDoctorListProjections.isEmpty()){
@@ -75,6 +81,7 @@ public class DoctorServiceImpl implements DoctorService{
     }
 
     @Override
+    @Cacheable(value ="TopNGovDoctorListProjection", key = "#countryName+':'+#specializedIn",unless = "#result==null")
     public List<TopNDoctorListProjection> getTopNGovDoctorBySpecialisationList(String countryName, String specializedIn) throws DoctorsException{
         if(countryName.isEmpty()){
             throw new DoctorsException("Please provide a valid country name", HttpStatus.BAD_REQUEST);
@@ -90,6 +97,7 @@ public class DoctorServiceImpl implements DoctorService{
     }
 
     @Override
+    @Cacheable(value ="TopNPrivateDoctorListProjection", key = "#countryName+':'+#specializedIn",unless = "#result==null")
     public List<TopNDoctorListProjection> getTopNPrivateDoctorBySpecialisationList(String countryName, String specializedIn) throws DoctorsException  {
         if(countryName.isEmpty()){
             throw new DoctorsException("Please provide a valid country name", HttpStatus.BAD_REQUEST);
@@ -105,6 +113,7 @@ public class DoctorServiceImpl implements DoctorService{
     }
 
     @Override
+    @Cacheable(value ="TopNDoctorByExperienceAndSpecialisationList", key = "#countryName+':'+#specializedIn+':'+#type+':'+#order",unless = "#result==null")
     public List<TopNDoctorListProjection> getNDoctorByExperienceAndSpecialisationList(String countryName, String specializedIn, String type, String order) throws DoctorsException  {
         if(countryName.isEmpty()){
             throw new DoctorsException("Please provide a valid country name", HttpStatus.BAD_REQUEST);
@@ -136,6 +145,14 @@ public class DoctorServiceImpl implements DoctorService{
 
     @Override
     @Transactional
+    @Caching(
+            evict = {
+                        @CacheEvict(value = "TopNDoctorListProjection",allEntries = true),
+                        @CacheEvict(value = "TopNGovDoctorListProjection",allEntries = true),
+                        @CacheEvict(value = "TopNPrivateDoctorListProjection",allEntries = true),
+                        @CacheEvict(value = "TopNDoctorByExperienceAndSpecialisationList",allEntries = true)
+            }
+    )
     public String addDoctor(DoctorApplication doctorApplication) throws CountryException,StateException,AppUserException {
         Country country = countryRepo.findCountryByName(doctorApplication.getTmpDoctorCountryName());
 
@@ -164,11 +181,24 @@ public class DoctorServiceImpl implements DoctorService{
     }
 
     @Override
-    public IndividualDoctorDetailProjection findDoctorDetailByName(String doctorName) {
-        return doctorRepo.findDetailsByDoctorName(doctorName);
+    @Cacheable(value = "individualDoctorDetailProjection",key = "#doctorEmail",unless = "#result==null")
+    public IndividualDoctorDetailProjection findDoctorDetailByDoctorName(String doctorName) {
+        IndividualDoctorDetailProjection doctorDetailProjection = doctorRepo.findDetailsByDoctorName(doctorName);
+        if (doctorDetailProjection==null) throw new DoctorsException(doctorName+" is not available in our database", HttpStatus.NOT_FOUND);
+        return doctorDetailProjection;
     }
 
     @Override
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "TopNDoctorListProjection",allEntries = true),
+                    @CacheEvict(value = "TopNGovDoctorListProjection",allEntries = true),
+                    @CacheEvict(value = "TopNPrivateDoctorListProjection",allEntries = true),
+                    @CacheEvict(value = "TopNDoctorByExperienceAndSpecialisationList",allEntries = true),
+                    @CacheEvict(value = "AllAvailableDoctor",allEntries = true),
+                    @CacheEvict(value = "DoctorByFacilityAndHospital",allEntries = true)
+            }
+    )
     public String addDoctorReviews(DoctorReviewDto doctorReviewDto) throws DoctorsException {
         Optional<AppUser> appUser = appUserRepo.findByUserEmail(doctorReviewDto.getUserEmail());
         if(appUser.isEmpty()){
@@ -191,6 +221,7 @@ public class DoctorServiceImpl implements DoctorService{
     }
 
     @Override
+    @Cacheable(value ="AllAvailableDoctor",unless = "#result==null")
     public List<String> findAllAvailableDoctor() throws DoctorsException {
         List<String> doctorList = doctorRepo.findAllDoctors();
         if(doctorList.isEmpty()){
@@ -200,6 +231,7 @@ public class DoctorServiceImpl implements DoctorService{
     }
 
     @Override
+    @Cacheable(value ="DoctorByFacilityAndHospital", key = "#hospitalName+':'+#facilityName",unless = "#result==null")
     public List<String> findDoctorByFacilityAndHospital(String hospitalName, String facilityName) {
         List<String> doctorList = doctorRepo.getDoctorByFacilityAndHospital(hospitalName,facilityName);
         if(doctorList.isEmpty()){

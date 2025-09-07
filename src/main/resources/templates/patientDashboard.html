@@ -631,7 +631,7 @@
       (async () => {
         try {
           const email = document.getElementById('doctorEmailInputDoc').value;
-          const res = await fetch(`/facility/facilityByDoctorName?doctorEmail=${encodeURIComponent(email)}`);
+          const res = await fetch(`/facility/facilityByDoctorEmail?doctorEmail=${encodeURIComponent(email)}`);
           if (!res.ok) throw new Error(await res.text());
           const facilities = await res.json();
           document.getElementById('facilitySelectDoc').innerHTML =

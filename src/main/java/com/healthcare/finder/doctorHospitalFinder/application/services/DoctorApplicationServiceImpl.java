@@ -8,6 +8,8 @@ import com.healthcare.finder.doctorHospitalFinder.application.projection.DoctorA
 import com.healthcare.finder.doctorHospitalFinder.application.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +36,7 @@ public class DoctorApplicationServiceImpl implements DoctorApplicationService{
 
     @Override
     @Transactional
+    @CacheEvict(value = "AllPendingDoctors",allEntries = true)
     public String addDoctorApplicationRequest(DoctorRegisterDto doctorRegisterDto)  throws CountryException, StateException, AppUserException {
 
         Country country = countryRepo.findCountryByName(doctorRegisterDto.getCountryName());
@@ -93,6 +96,7 @@ public class DoctorApplicationServiceImpl implements DoctorApplicationService{
     }
 
     @Override
+    @Cacheable(value = "AllPendingDoctors")
     public List<DoctorApplicationProjection> findAllPendingDoctors() throws DoctorsException {
         List<DoctorApplication> doctorApplicationList = doctorApplicationRepo.getAllPendingDoctors();
         if(doctorApplicationList.isEmpty()){
@@ -121,6 +125,7 @@ public class DoctorApplicationServiceImpl implements DoctorApplicationService{
 
     @Override
     @Transactional
+    @CacheEvict(value = "AllPendingDoctors",allEntries = true)
     public String removeDoctorByEmail(String email) throws DoctorApplicationException{
         Optional<DoctorApplication> doctorApplication = doctorApplicationRepo.getDoctorNameByEmail(email);
         if(doctorApplication.isEmpty()){
