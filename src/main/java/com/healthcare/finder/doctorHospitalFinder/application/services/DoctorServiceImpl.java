@@ -150,6 +150,7 @@ public class DoctorServiceImpl implements DoctorService{
                         @CacheEvict(value = "TopNDoctorListProjection",allEntries = true),
                         @CacheEvict(value = "TopNGovDoctorListProjection",allEntries = true),
                         @CacheEvict(value = "TopNPrivateDoctorListProjection",allEntries = true),
+                        @CacheEvict(value = "AllPendingDoctors",allEntries = true),
                         @CacheEvict(value = "TopNDoctorByExperienceAndSpecialisationList",allEntries = true)
             }
     )
@@ -181,7 +182,7 @@ public class DoctorServiceImpl implements DoctorService{
     }
 
     @Override
-    @Cacheable(value = "individualDoctorDetailProjection",key = "#doctorEmail",unless = "#result==null")
+    @Cacheable(value = "individualDoctorDetailProjection",key = "#doctorName",unless = "#result==null")
     public IndividualDoctorDetailProjection findDoctorDetailByDoctorName(String doctorName) {
         IndividualDoctorDetailProjection doctorDetailProjection = doctorRepo.findDetailsByDoctorName(doctorName);
         if (doctorDetailProjection==null) throw new DoctorsException(doctorName+" is not available in our database", HttpStatus.NOT_FOUND);

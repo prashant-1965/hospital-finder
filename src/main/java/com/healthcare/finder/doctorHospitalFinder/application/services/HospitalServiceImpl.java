@@ -128,6 +128,7 @@ public class HospitalServiceImpl implements HospitalService {
             @CacheEvict(value = "TopNHospitalListProjection", allEntries = true),
             @CacheEvict(value = "TopNGovHospitalListProjection", allEntries = true),
             @CacheEvict(value = "TopNPrivateHospitalListProjection", allEntries = true),
+            @CacheEvict(value = "AllPendingHospitalRequest",allEntries = true),
             @CacheEvict(value = "IndividualHospitalDetailProjection", key = "#hospital.hospitalName")
     })
     @Transactional
