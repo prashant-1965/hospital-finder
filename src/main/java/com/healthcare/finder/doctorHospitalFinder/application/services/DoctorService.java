@@ -1,6 +1,7 @@
 package com.healthcare.finder.doctorHospitalFinder.application.services;
 
 import com.healthcare.finder.doctorHospitalFinder.application.dto.DoctorReviewDto;
+import com.healthcare.finder.doctorHospitalFinder.application.entity.Doctor;
 import com.healthcare.finder.doctorHospitalFinder.application.entity.DoctorApplication;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.IndividualDoctorDetailProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNDoctorListProjection;
@@ -19,4 +20,5 @@ public interface DoctorService {
     String addDoctorReviews(DoctorReviewDto doctorReviewDto);
     List<String> findAllAvailableDoctor();
     List<String> findDoctorByFacilityAndHospital(String hospitalName,String facilityName);
+    Doctor findByDoctorName(String doctorName);
 }

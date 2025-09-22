@@ -5,12 +5,12 @@ import com.healthcare.finder.doctorHospitalFinder.application.classException.Sta
 import com.healthcare.finder.doctorHospitalFinder.application.dto.StateRegisterDto;
 import com.healthcare.finder.doctorHospitalFinder.application.entity.Country;
 import com.healthcare.finder.doctorHospitalFinder.application.entity.State;
-import com.healthcare.finder.doctorHospitalFinder.application.repository.CountryRepo;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.StatesRepo;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.StateListProjection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ public class StateServiceImpl implements StateService{
     @Autowired
     private StatesRepo statesRepo;
     @Autowired
-    private CountryRepo countryRepo;
+    private CountryServices countryServices;
 
     @Override
     @Cacheable(value = "StateListProjection",key = "#countryName",unless = "#result==null")
@@ -35,16 +35,21 @@ public class StateServiceImpl implements StateService{
     }
 
     @Override
-    @CacheEvict(value = "StateListProjection",allEntries = true)
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "State", allEntries = true),
+                    @CacheEvict(value = "StateListProjection", allEntries = true)
+            }
+    )
     public String addState(StateRegisterDto stateRegisterDto) throws StateException,CountryException {
         if(stateRegisterDto.getStateName().isEmpty()){
             throw new StateException("Invalid State Name!",HttpStatus.BAD_REQUEST);
         }
-        Country country = countryRepo.findCountryByName(stateRegisterDto.getCountryName());
+        Country country = countryServices.findCountryByName(stateRegisterDto.getCountryName());
         if(country==null){
             throw new CountryException("Our Facility is not available in "+stateRegisterDto.getCountryName(),HttpStatus.BAD_REQUEST);
         }
-        State isExist = statesRepo.findByStateName(stateRegisterDto.getStateName());
+        State isExist = this.findByStateName(stateRegisterDto.getStateName());
         if(isExist!=null){
             throw new StateException("State Already Exist",HttpStatus.BAD_REQUEST);
         }
@@ -53,5 +58,11 @@ public class StateServiceImpl implements StateService{
         state.setCountry(country);
         statesRepo.save(state);
         return "State added SuccessFully";
+    }
+
+    @Override
+    @Cacheable(value = "State",key = "#stateName",unless = "#result==null")
+    public State findByStateName(String stateName) {
+        return statesRepo.findByStateName(stateName);
     }
 }

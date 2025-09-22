@@ -13,7 +13,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.awt.font.OpenType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,13 +23,11 @@ public class DoctorApplicationServiceImpl implements DoctorApplicationService{
     @Autowired
     private DoctorApplicationRepo doctorApplicationRepo;
     @Autowired
-    private FacilitiesRepo facilitiesRepo;
+    private FacilitiesService facilitiesService;
     @Autowired
-    private CountryRepo countryRepo;
+    private CountryServices countryServices;
     @Autowired
-    private StatesRepo statesRepo;
-    @Autowired
-    private HospitalRepo hospitalRepo;
+    private StateService stateService;
     @Autowired
     private AppUserServices appUserServices;
 
@@ -39,18 +36,18 @@ public class DoctorApplicationServiceImpl implements DoctorApplicationService{
     @CacheEvict(value = "AllPendingDoctors",allEntries = true)
     public String addDoctorApplicationRequest(DoctorRegisterDto doctorRegisterDto)  throws CountryException, StateException, AppUserException {
 
-        Country country = countryRepo.findCountryByName(doctorRegisterDto.getCountryName());
+        Country country = countryServices.findCountryByName(doctorRegisterDto.getCountryName());
         if(country==null){
             throw new CountryException("We are not authorized for work in "+doctorRegisterDto.getCountryName(),HttpStatus.NOT_FOUND);
         }
-        State state = statesRepo.findByStateName(doctorRegisterDto.getStateName());
+        State state = stateService.findByStateName(doctorRegisterDto.getStateName());
         if(state==null){
             throw new StateException("We are not authorized for work in "+doctorRegisterDto.getStateName(),HttpStatus.NOT_FOUND);
         }
 
         List<MedicalFacilities> medicalFacilitiesList = new ArrayList<>();
         for(String facility:doctorRegisterDto.getFacilityNames()){
-            MedicalFacilities medicalFacilities = facilitiesRepo.findByFacilityName(facility);
+            MedicalFacilities medicalFacilities = facilitiesService.findByFacilityName(facility);
             if(medicalFacilities==null){
                 throw new FacilitiesException(facility+" facility is not Available", HttpStatus.BAD_REQUEST);
             }

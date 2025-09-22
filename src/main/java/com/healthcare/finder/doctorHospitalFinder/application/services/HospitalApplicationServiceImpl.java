@@ -5,9 +5,11 @@ import com.healthcare.finder.doctorHospitalFinder.application.dto.HospitalRegist
 import com.healthcare.finder.doctorHospitalFinder.application.entity.*;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.HospitalApplicationProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -20,34 +22,37 @@ public class HospitalApplicationServiceImpl implements HospitalApplicationServic
     @Autowired
     private HospitalApplicationRepo hospitalApplicationRepo;
     @Autowired
-    private CountryRepo countryRepo;
+    private CountryServices countryServices;
     @Autowired
-    private StatesRepo statesRepo;
+    private StateService stateService;
     @Autowired
-    private FacilitiesRepo facilitiesRepo;
+    private FacilitiesService facilitiesService;
     @Autowired
-    private HospitalRepo hospitalRepo;
+    private HospitalService hospitalService;
 
     @Override
-    @CacheEvict(value = "AllPendingHospitalRequest",allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "HospitalApplication",allEntries = true),
+            @CacheEvict(value = "AllPendingHospitalRequest",allEntries = true)
+    })
     public String addHospitalRegistrationRequest(HospitalRegisterDto hospitalRegisterDto) throws CountryException, StateException, FacilitiesException, HospitalException {
-        Country country = countryRepo.findCountryByName(hospitalRegisterDto.getCountryName());
+        Country country = countryServices.findCountryByName(hospitalRegisterDto.getCountryName());
         if(country==null){
             throw new CountryException("Service is not available in "+hospitalRegisterDto.getCountryName(),HttpStatus.NOT_FOUND);
         }
-        State state = statesRepo.findByStateName(hospitalRegisterDto.getStateName());
+        State state = stateService.findByStateName(hospitalRegisterDto.getStateName());
         if(state==null){
             throw new StateException("Our service is not available in "+hospitalRegisterDto.getStateName(),HttpStatus.NOT_FOUND);
         }
         List<MedicalFacilities> medicalFacilitiesList = new ArrayList<>();
         for(String facility:hospitalRegisterDto.getFacilities()){
-            MedicalFacilities medicalFacilities = facilitiesRepo.findByFacilityName(facility);
+            MedicalFacilities medicalFacilities = facilitiesService.findByFacilityName(facility);
             if(medicalFacilities==null){
                 throw new FacilitiesException(facility+" facility is not Available",HttpStatus.BAD_REQUEST);
             }
             medicalFacilitiesList.add(medicalFacilities);
         }
-        Hospital existHospital = hospitalRepo.findByHospitalName(hospitalRegisterDto.getHospitalName());
+        Hospital existHospital = hospitalService.findByHospitalName(hospitalRegisterDto.getHospitalName());
         if(existHospital!=null){
             throw new HospitalException(hospitalRegisterDto.getHospitalName()+" already exist!",HttpStatus.BAD_REQUEST);
         }
@@ -92,13 +97,22 @@ public class HospitalApplicationServiceImpl implements HospitalApplicationServic
     }
 
     @Override
-    @CacheEvict(value = "AllPendingHospitalRequest",allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "HospitalApplication",allEntries = true),
+            @CacheEvict(value = "AllPendingHospitalRequest",allEntries = true)
+    })
     public String hospitalRemovalRequest(String hospitalName) throws HospitalApplicationException {
-        HospitalApplication hospitalApplication = hospitalApplicationRepo.getByHospitalName(hospitalName);
+        HospitalApplication hospitalApplication = this.getByHospitalName(hospitalName);
         if(hospitalApplication==null){
             throw new HospitalApplicationException("No Hospital with name "+hospitalName+" Found!",HttpStatus.NOT_FOUND);
         }
         hospitalApplicationRepo.deleteHospitalApplicationByName(hospitalName);
         return hospitalName+" removed SuccessFully";
+    }
+
+    @Override
+    @Cacheable(value = "HospitalApplication",key = "#hospitalName",unless = "#result==null")
+    public HospitalApplication getByHospitalName(String hospitalName) {
+        return hospitalApplicationRepo.getByHospitalName(hospitalName);
     }
 }

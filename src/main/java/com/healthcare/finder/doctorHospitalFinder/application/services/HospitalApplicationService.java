@@ -10,4 +10,5 @@ public interface HospitalApplicationService {
     String addHospitalRegistrationRequest(HospitalRegisterDto hospitalRegisterDto);
     List<HospitalApplicationProjection> findAllPendingHospitalRequest();
     String hospitalRemovalRequest(String hospitalName);
+    HospitalApplication getByHospitalName(String hospitalName);
 }

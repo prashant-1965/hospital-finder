@@ -5,7 +5,6 @@ import com.healthcare.finder.doctorHospitalFinder.application.dto.GlobalReviewRe
 import com.healthcare.finder.doctorHospitalFinder.application.entity.AppUser;
 import com.healthcare.finder.doctorHospitalFinder.application.entity.GlobalReview;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.Top10RattingCommentProjection;
-import com.healthcare.finder.doctorHospitalFinder.application.repository.AppUserRepo;
 import com.healthcare.finder.doctorHospitalFinder.application.repository.GlobalReviewRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -24,7 +23,7 @@ public class GlobalReviewServiceImpl implements GlobalReviewService {
     @Autowired
     private GlobalReviewRepo globalReviewRepo;
     @Autowired
-    private AppUserRepo appUserRepo;
+    private AppUserServices appUserServices;
 
     @Override
     @Cacheable(value = "Top10RattingCommentProjection")
@@ -40,7 +39,7 @@ public class GlobalReviewServiceImpl implements GlobalReviewService {
     @CacheEvict(value = "Top10RattingCommentProjection",allEntries = true)
     public String addGlobalReview(GlobalReviewRegisterDto globalReviewRegisterDto) throws GlobalReviewException {
 
-        Optional<AppUser> appUser = appUserRepo.findByUserEmail(globalReviewRegisterDto.getUserEmail());
+        Optional<AppUser> appUser = appUserServices.findByUserEmail(globalReviewRegisterDto.getUserEmail());
         if(appUser.isEmpty()){
             throw new GlobalReviewException("Please register your "+globalReviewRegisterDto.getUserEmail()+"!",HttpStatus.BAD_REQUEST);
         }

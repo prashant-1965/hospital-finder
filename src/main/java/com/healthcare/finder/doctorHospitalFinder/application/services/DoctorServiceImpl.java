@@ -24,23 +24,19 @@ import java.util.Optional;
 public class DoctorServiceImpl implements DoctorService{
 
     @Autowired
-    private HospitalRepo hospitalRepo;
-    @Autowired
     private DoctorRepo doctorRepo;
-    @Autowired
-    private CountryRepo countryRepo;
-    @Autowired
-    private StatesRepo statesRepo;
-    @Autowired
-    private FacilitiesRepo facilitiesRepo;
-    @Autowired
-    private AppUserRepo appUserRepo;
     @Autowired
     private DoctorReviewRepo doctorReviewRepo;
     @Autowired
+    private CountryServices countryServices;
+    @Autowired
+    private StateService stateService;
+    @Autowired
+    private HospitalService hospitalService;
+    @Autowired
     private AppUserServices appUserServices;
     @Autowired
-    private DoctorApplicationRepo doctorApplicationRepo;
+    private DoctorApplicationService doctorApplicationService;
 
 
     @Override
@@ -155,13 +151,11 @@ public class DoctorServiceImpl implements DoctorService{
             }
     )
     public String addDoctor(DoctorApplication doctorApplication) throws CountryException,StateException,AppUserException {
-        Country country = countryRepo.findCountryByName(doctorApplication.getTmpDoctorCountryName());
 
-        State state = statesRepo.findByStateName(doctorApplication.getTmpDoctorStateName());
-
+        Country country = countryServices.findCountryByName(doctorApplication.getTmpDoctorCountryName());
+        State state = stateService.findByStateName(doctorApplication.getTmpDoctorStateName());
         List<MedicalFacilities> medicalFacilitiesList = new ArrayList<>(doctorApplication.getMedicalFacilities());
-
-        Hospital hospital = hospitalRepo.findByHospitalName(doctorApplication.getHospitalAppliedFor());
+        Hospital hospital = hospitalService.findByHospitalName(doctorApplication.getHospitalAppliedFor());
         Doctor doctor = new Doctor();
         doctor.setDoctorName(doctorApplication.getTmpDoctorName());
         doctor.setDoctorAge(doctorApplication.getTmpDoctorAge());
@@ -177,7 +171,7 @@ public class DoctorServiceImpl implements DoctorService{
         doctor.setHospital(hospital);
         doctor.setFacilities(medicalFacilitiesList);
         doctorRepo.save(doctor);
-        doctorApplicationRepo.deleteDoctorApplicationByEmail(doctorApplication.getTmpDoctorEmail());
+        doctorApplicationService.removeDoctorByEmail(doctorApplication.getTmpDoctorEmail());
         return doctorApplication.getTmpDoctorName() + " has appointed in " + doctorApplication.getHospitalAppliedFor();
     }
 
@@ -197,15 +191,16 @@ public class DoctorServiceImpl implements DoctorService{
                     @CacheEvict(value = "TopNPrivateDoctorListProjection",allEntries = true),
                     @CacheEvict(value = "TopNDoctorByExperienceAndSpecialisationList",allEntries = true),
                     @CacheEvict(value = "AllAvailableDoctor",allEntries = true),
+                    @CacheEvict(value = "Doctor",allEntries = true),
                     @CacheEvict(value = "DoctorByFacilityAndHospital",allEntries = true)
             }
     )
     public String addDoctorReviews(DoctorReviewDto doctorReviewDto) throws DoctorsException {
-        Optional<AppUser> appUser = appUserRepo.findByUserEmail(doctorReviewDto.getUserEmail());
+        Optional<AppUser> appUser = appUserServices.findByUserEmail(doctorReviewDto.getUserEmail());
         if(appUser.isEmpty()){
             throw new DoctorsException("Please register your "+doctorReviewDto.getUserEmail()+"!",HttpStatus.BAD_REQUEST);
         }
-        Doctor doctor = doctorRepo.findByDoctorName(doctorReviewDto.getDoctorName());
+        Doctor doctor = this.findByDoctorName(doctorReviewDto.getDoctorName());
         long totalReview = doctorReviewRepo.getTotalReviewForIndividualDoctorByName(doctorReviewDto.getDoctorName());
         double previousRatting = doctorRepo.getAvgRattingByDoctorName(doctorReviewDto.getDoctorName());
         double newAvgRatting = ((previousRatting * totalReview) + doctorReviewDto.getDoctorRatting()) / (totalReview + 1);
@@ -239,5 +234,11 @@ public class DoctorServiceImpl implements DoctorService{
             throw new DoctorsException("We don't have any doctor in "+hospitalName+" with "+facilityName+" facility",HttpStatus.NOT_FOUND);
         }
         return doctorList;
+    }
+
+    @Override
+    @Cacheable(value = "Doctor",key = "#doctorName",unless = "#result==null")
+    public Doctor findByDoctorName(String doctorName) {
+        return doctorRepo.findByDoctorName(doctorName);
     }
 }

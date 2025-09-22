@@ -8,7 +8,6 @@ import com.healthcare.finder.doctorHospitalFinder.application.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
@@ -21,16 +20,17 @@ import java.util.Optional;
 
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
-    @Autowired
-    private DoctorRepo doctorRepo;
-    @Autowired
-    private HospitalRepo hospitalRepo;
-    @Autowired
-    private FacilitiesRepo facilitiesRepo;
+
     @Autowired
     private AppointmentRepo appointmentRepo;
     @Autowired
-    private AppUserRepo appUserRepo;
+    private DoctorService doctorService;
+    @Autowired
+    private HospitalService hospitalService;
+    @Autowired
+    private FacilitiesService facilitiesService;
+    @Autowired
+    private AppUserServices appUserServices;
 
     @Override
     @Transactional
@@ -41,10 +41,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (optionalAppointment.isPresent()){
             throw new AppointmentException("You have already book appointment with "+appointmentRegistrationDto.getDoctorName()+" on "+appointmentRegistrationDto.getFacilityName(),HttpStatus.BAD_REQUEST);
         }
-        Doctor doctor = doctorRepo.findByDoctorName(appointmentRegistrationDto.getDoctorName());
-        Optional<Hospital> hospital = hospitalRepo.getHospitalByDoctorName(appointmentRegistrationDto.getDoctorName());
-        MedicalFacilities facility = facilitiesRepo.findByFacilityName(appointmentRegistrationDto.getFacilityName());
-        Optional<AppUser> appUser = appUserRepo.findByUserEmail(appointmentRegistrationDto.getAppUserEmail());
+        Doctor doctor = doctorService.findByDoctorName(appointmentRegistrationDto.getDoctorName());
+        Optional<Hospital> hospital = hospitalService.getHospitalByDoctorName(appointmentRegistrationDto.getDoctorName());
+        MedicalFacilities facility = facilitiesService.findByFacilityName(appointmentRegistrationDto.getFacilityName());
+        Optional<AppUser> appUser = appUserServices.findByUserEmail(appointmentRegistrationDto.getAppUserEmail());
         Appointment appointment = new Appointment();
         appointment.setUser(appUser.get());
         appointment.setFacilities(facility);
@@ -123,6 +123,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                     @CacheEvict(value = "AllBookedAppointmentByUserEmail", key = "#userEmail")
             }
     )
+
     public String updateAppointmentStatus(String userEmail, String newStatus, String facility) {
         appointmentRepo.updateAppointmentStatusByUserEmail(userEmail,newStatus,LocalDateTime.now(),facility);
         return "User with "+ userEmail +"'s status has been updated to "+newStatus+ " for "+facility;

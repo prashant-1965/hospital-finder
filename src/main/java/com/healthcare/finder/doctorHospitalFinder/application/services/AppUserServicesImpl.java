@@ -38,7 +38,12 @@ public class AppUserServicesImpl implements AppUserServices, UserDetailsService 
     private PasswordEncoder passwordEncoder;
 
     @Override
-    @CacheEvict(value = "loadUserByUsername",allEntries = true)
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "loadUserByUsername",allEntries = true),
+                    @CacheEvict(value = "AppUser",allEntries = true)
+            }
+    )
     public String addAppUser(AppUserRegisterDto appUserRegisterDto) throws AppUserException {
         if(appUserRegisterDto.getUserCountry().isEmpty()  || appUserRegisterDto.getUserEmail().isEmpty()){
             throw new AppUserException("All fields are mandatory to fill",HttpStatus.BAD_REQUEST);
@@ -73,7 +78,7 @@ public class AppUserServicesImpl implements AppUserServices, UserDetailsService 
     @Cacheable(value = "loadUserByUsername",key = "#userEmail",unless = "#result==null")
     public UserDetails loadUserByUsername(String userEmail) throws AppUserException
     {
-        Optional<AppUser> appUser = appUserRepo.findByUserEmail(userEmail);
+        Optional<AppUser> appUser = this.findByUserEmail(userEmail);
         if(appUser.isEmpty()){
             throw new AppUserException("Invalid login Details",HttpStatus.NOT_FOUND);
         }
@@ -84,13 +89,24 @@ public class AppUserServicesImpl implements AppUserServices, UserDetailsService 
         );
     }
     @Override
-    @CacheEvict(value = "loadUserByUsername", key = "#userEmail")
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "loadUserByUsername",allEntries = true),
+                    @CacheEvict(value = "AppUser",allEntries = true)
+            }
+    )
     public String changeAppUserPasswordRequest(String userEmail,String password) {
-        Optional<AppUser> appUser = appUserRepo.findByUserEmail(userEmail);
+        Optional<AppUser> appUser = this.findByUserEmail(userEmail);
         if(appUser.isEmpty()){
             throw new AppUserException(userEmail+" has not registered in our system!",HttpStatus.NOT_FOUND);
         }
         appUserRepo.updateUserPassword(userEmail,passwordEncoder.encode(password));
         return "You Password Updated SuccessFully!";
+    }
+
+    @Override
+    @Cacheable(value = "AppUser",key = "#Email",unless = "#result==null")
+    public Optional<AppUser> findByUserEmail(String Email) {
+        return appUserRepo.findByUserEmail(Email);
     }
 }

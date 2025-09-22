@@ -20,6 +20,7 @@ public class AppointmentController {
         return ResponseEntity.status(200).body(appointmentService.registerAppointment(appointmentRegistrationDto));
     }
 
+
     @GetMapping("/MyAppointment")
     public ResponseEntity<List<AppUserAppointmentProjection>> getAllAppointments(@RequestParam String email){
         return ResponseEntity.status(200).body(appointmentService.findAllBookedAppointmentByUserEmail(email));

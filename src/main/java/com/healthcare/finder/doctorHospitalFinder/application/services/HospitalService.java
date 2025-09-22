@@ -1,10 +1,12 @@
 package com.healthcare.finder.doctorHospitalFinder.application.services;
 
 import com.healthcare.finder.doctorHospitalFinder.application.dto.HospitalReviewDto;
+import com.healthcare.finder.doctorHospitalFinder.application.entity.Hospital;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.IndividualHospitalDetailProjection;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.TopNHospitalListProjection;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface HospitalService {
     List<TopNHospitalListProjection> getTopNHospitalListByCountry(String countryName, int n);
@@ -18,4 +20,6 @@ public interface HospitalService {
     IndividualHospitalDetailProjection findHospitalDetailByName(String hospitalName);
     List<String> findHospitalByFacilityName(String facilityName);
     List<String> findHospitalByFacilityNameAndDoctorEmail(String facilityName,String doctorEmail);
+    Hospital findByHospitalName(String hospitalName);
+    Optional<Hospital> getHospitalByDoctorName(String doctorName);
 }

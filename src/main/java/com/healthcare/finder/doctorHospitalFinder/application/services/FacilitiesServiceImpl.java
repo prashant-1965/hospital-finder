@@ -33,7 +33,8 @@ public class FacilitiesServiceImpl implements FacilitiesService {
     @Override
     @Caching(evict={
                 @CacheEvict(value = "FacilityListProjection",allEntries = true),
-                @CacheEvict(value = "facilityListByHospitalName",allEntries = true)
+                @CacheEvict(value = "facilityListByHospitalName",allEntries = true),
+                @CacheEvict(value = "MedicalFacilities",allEntries = true)
             }
     )
     public String addFacility(MedicalFacilitiesRegisterDto medicalFacilitiesRegisterDto) throws FacilitiesException {
@@ -43,7 +44,7 @@ public class FacilitiesServiceImpl implements FacilitiesService {
         if(medicalFacilitiesRegisterDto.getFacilityDescription().isEmpty()){
             throw new FacilitiesException("Provide facility description",HttpStatus.BAD_REQUEST);
         }
-        MedicalFacilities medicalFacilitiesExist = facilitiesRepo.findByFacilityName(medicalFacilitiesRegisterDto.getFacilityName());
+        MedicalFacilities medicalFacilitiesExist = this.findByFacilityName(medicalFacilitiesRegisterDto.getFacilityName());
         if(medicalFacilitiesExist!=null){
             throw new FacilitiesException("Facility Already Exist",HttpStatus.BAD_REQUEST);
         }
@@ -72,5 +73,11 @@ public class FacilitiesServiceImpl implements FacilitiesService {
             throw new FacilitiesException(hospitalName+" doesn't provide any facility",HttpStatus.NOT_FOUND);
         }
         return facilityList;
+    }
+
+    @Override
+    @Cacheable(value = "MedicalFacilities",key = "#facilityName", unless = "#result==null")
+    public MedicalFacilities findByFacilityName(String facilityName) {
+        return facilitiesRepo.findByFacilityName(facilityName);
     }
 }

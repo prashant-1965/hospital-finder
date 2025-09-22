@@ -1,6 +1,7 @@
 package com.healthcare.finder.doctorHospitalFinder.application.services;
 
 import com.healthcare.finder.doctorHospitalFinder.application.dto.MedicalFacilitiesRegisterDto;
+import com.healthcare.finder.doctorHospitalFinder.application.entity.MedicalFacilities;
 import com.healthcare.finder.doctorHospitalFinder.application.projection.FacilityListProjection;
 
 import java.util.List;
@@ -10,4 +11,5 @@ public interface FacilitiesService {
     String addFacility(MedicalFacilitiesRegisterDto medicalFacilitiesRegisterDto);
     List<String> findFacilityByDoctorEmail(String doctorEmail);
     List<String> findFacilityByHospitalName(String hospitalName);
+    MedicalFacilities findByFacilityName(String facilityName);
 }

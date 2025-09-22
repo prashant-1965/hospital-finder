@@ -8,6 +8,7 @@ import com.healthcare.finder.doctorHospitalFinder.application.projection.Country
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -30,12 +31,17 @@ public class CountryServicesImpl implements CountryServices {
     }
 
     @Override
-    @CacheEvict(value = "AllCountryList",allEntries = true)
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "AllCountryList",allEntries = true),
+                    @CacheEvict(value = "Country",allEntries = true)
+            }
+    )
     public String addCountry(CountryRegisterDto countryRegisterDto) throws CountryException {
         if(countryRegisterDto.getCountryName().isEmpty()){
             throw new CountryException("Invalid Country Name!",HttpStatus.BAD_REQUEST);
         }
-        Country isExist = countryRepo.findCountryByName(countryRegisterDto.getCountryName());
+        Country isExist = this.findCountryByName(countryRegisterDto.getCountryName());
         if(isExist!=null){
             throw new CountryException("Country Already Exist",HttpStatus.BAD_REQUEST);
         }
@@ -43,5 +49,11 @@ public class CountryServicesImpl implements CountryServices {
         country.setCountryName(countryRegisterDto.getCountryName());
         countryRepo.save(country);
         return "Country Added SuccessFully";
+    }
+
+    @Override
+    @Cacheable(value = "Country",key = "#countryName",unless = "#result==null")
+    public Country findCountryByName(String countryName) {
+        return countryRepo.findCountryByName(countryName);
     }
 }

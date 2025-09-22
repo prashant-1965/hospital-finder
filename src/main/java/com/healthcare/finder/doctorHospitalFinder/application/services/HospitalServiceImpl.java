@@ -29,15 +29,13 @@ public class HospitalServiceImpl implements HospitalService {
     @Autowired
     private HospitalReviewRepo hospitalReviewRepo;
     @Autowired
-    private CountryRepo countryRepo;
+    private CountryServices countryServices;
     @Autowired
-    private StatesRepo statesRepo;
+    private StateService stateService;
     @Autowired
-    private FacilitiesRepo facilitiesRepo;
+    private AppUserServices appUserServices;
     @Autowired
-    private AppUserRepo appUserRepo;
-    @Autowired
-    private HospitalApplicationRepo hospitalApplicationRepo;
+    private HospitalApplicationService hospitalApplicationService;
 
     @Override
     @Cacheable(value = "TopNHospitalListProjection",key = "#countryName+':'+#n")
@@ -103,11 +101,11 @@ public class HospitalServiceImpl implements HospitalService {
             @CacheEvict(value = "IndividualHospitalDetailProjection", key = "#hospitalReviewDto.hospitalName")
     })
     public String addHospitalReviews(HospitalReviewDto hospitalReviewDto) throws HospitalException{
-        Optional<AppUser> appUser = appUserRepo.findByUserEmail(hospitalReviewDto.getAppUserEmail());
+        Optional<AppUser> appUser = appUserServices.findByUserEmail(hospitalReviewDto.getAppUserEmail());
         if(appUser.isEmpty()){
             throw new HospitalException("Please register your "+hospitalReviewDto.getAppUserEmail()+"!",HttpStatus.BAD_REQUEST);
         }
-        Hospital hospital = hospitalRepo.findByHospitalName(hospitalReviewDto.getHospitalName());
+        Hospital hospital = this.findByHospitalName(hospitalReviewDto.getHospitalName());
         long totalReview = hospitalReviewRepo.getTotalReviewForIndividualHospitalByName(hospitalReviewDto.getHospitalName());
         double previousRatting = hospitalRepo.getRattingByHospitalName(hospitalReviewDto.getHospitalName());
         double newAvgRatting = ((previousRatting * totalReview) + hospitalReviewDto.getHospitalRating()) / (totalReview + 1);
@@ -129,16 +127,18 @@ public class HospitalServiceImpl implements HospitalService {
             @CacheEvict(value = "TopNGovHospitalListProjection", allEntries = true),
             @CacheEvict(value = "TopNPrivateHospitalListProjection", allEntries = true),
             @CacheEvict(value = "AllPendingHospitalRequest",allEntries = true),
+            @CacheEvict(value = "Hospital",allEntries = true),
+            @CacheEvict(value = "HospitalByDoctorName",allEntries = true),
             @CacheEvict(value = "IndividualHospitalDetailProjection", key = "#hospital.hospitalName")
     })
     @Transactional
     @Override
     public String registerHospital(String hospitalName) throws HospitalException, CountryException, StateException, FacilitiesException {
 
-        HospitalApplication hospitalApplication = hospitalApplicationRepo.getByHospitalName(hospitalName);
-        Country country = countryRepo.findCountryByName(hospitalApplication.getTempCountryName());
+        HospitalApplication hospitalApplication = hospitalApplicationService.getByHospitalName(hospitalName);
+        Country country = countryServices.findCountryByName(hospitalApplication.getTempCountryName());
 
-        State state = statesRepo.findByStateName(hospitalApplication.getTempStateName());
+        State state = stateService.findByStateName(hospitalApplication.getTempStateName());
 
         List<MedicalFacilities> medicalFacilitiesList = new ArrayList<>(hospitalApplication.getFacilities());
 
@@ -153,7 +153,7 @@ public class HospitalServiceImpl implements HospitalService {
         hospital.setState(state);
         hospital.setFacilities(medicalFacilitiesList);
         hospitalRepo.save(hospital);
-        hospitalApplicationRepo.deleteHospitalApplicationByName(hospitalName);
+        hospitalApplicationService.hospitalRemovalRequest(hospitalName);
         return "Hospital registered Successfully";
     }
 
@@ -205,5 +205,17 @@ public class HospitalServiceImpl implements HospitalService {
             throw new HospitalException("Currently No doctor is providing in "+facilityName+" facility!",HttpStatus.NOT_FOUND);
         }
         return hospitalList;
+    }
+
+    @Override
+    @Cacheable(value = "Hospital",key = "#hospitalName",unless = "#result==null")
+    public Hospital findByHospitalName(String hospitalName) {
+        return hospitalRepo.findByHospitalName(hospitalName);
+    }
+
+    @Override
+    @Cacheable(value = "HospitalByDoctorName",key = "#doctorName",unless = "#result==null")
+    public Optional<Hospital> getHospitalByDoctorName(String doctorName) {
+        return hospitalRepo.getHospitalByDoctorName(doctorName);
     }
 }
